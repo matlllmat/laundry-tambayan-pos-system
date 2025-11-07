@@ -1,0 +1,289 @@
+.admin-budget-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  animation: fadeSlideIn 0.8s ease-out both;
+  animation-delay: 0.2s;
+}
+
+.admin-budget-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  min-height: calc(100vh - 200px);
+  margin-top: 1.5rem;
+}
+
+.budget-content-wrapper {
+  display: flex;
+  gap: 2rem;
+  width: 90%;
+  max-width: 1400px;
+}
+
+/* Left Side - Table Container */
+.budget-table-section {
+  flex: 1;
+  background: rgba(40, 60, 90, 0.75);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  padding: 1.5rem;
+}
+
+.budget-header {
+  background-color: transparent;
+  color: white;
+  padding: 0 0 1rem 0;
+  margin-bottom: 1rem;
+}
+
+.budget-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+}
+
+/* Table Styles */
+.budget-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  background: transparent;
+}
+
+.budget-table thead tr {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.budget-table thead th {
+  padding: 0.625rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+}
+
+.budget-table tbody tr {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: background-color 0.2s;
+}
+
+.budget-table tbody tr:hover:not(.empty-row) {
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.budget-table tbody tr.empty-row {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.budget-table tbody tr.empty-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+  cursor: default;
+}
+
+.budget-table tbody td {
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Right Side - Sidebar Form */
+.budget-sidebar {
+  width: 380px;
+  background: rgba(50, 70, 100, 0.85);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 1.75rem;
+  height: fit-content;
+  align-self: stretch;
+}
+
+.budget-table-section,
+.budget-sidebar {
+  height: 700px;
+}
+
+.budget-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-bottom: 1.5rem;
+  margin-top: 4rem;
+}
+
+.total-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.total-item label {
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-width: 90px;
+  margin: 0;
+}
+
+.total-input {
+  flex: 1;
+  padding: 0.5rem 0.875rem;
+  background: rgba(180, 190, 200, 0.9);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #1f2937;
+  font-weight: 500;
+  cursor: default;
+}
+
+.total-input:focus {
+  outline: none;
+  background: rgba(180, 190, 200, 0.9);
+}
+
+.budget-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.budget-form label {
+  display: block;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.budget-input {
+  width: 100%;
+  padding: 0.5rem 0.875rem;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #333 !important;
+  transition: all 0.2s;
+}
+
+.budget-input::placeholder {
+  color: #333 !important;
+}
+
+.budget-input:focus {
+  outline: none;
+  background: white !important;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  color: #333 !important;
+}
+
+.date-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.date-label {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  min-width: 45px;
+}
+
+.date-input {
+  flex: 1;
+  padding: 0.5rem 0.875rem;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #555 !important;
+  cursor: pointer;
+}
+
+.date-input::-webkit-datetime-edit {
+  color: #555 !important;
+}
+
+.date-input:focus::-webkit-datetime-edit {
+  color: #222 !important;
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.5);
+}
+
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 0.625rem 1.5rem;
+  background-color: #e5e7eb;
+  color: #1f2937;
+  border: none;
+  border-radius: 25px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .budget-content-wrapper {
+    flex-direction: column;
+    width: 95%;
+  }
+
+  .budget-sidebar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-budget-container {
+    padding: 1rem;
+  }
+
+  .budget-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .budget-table thead th,
+  .budget-table tbody td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .budget-content-wrapper {
+    margin-top: 0;
+  }
+}

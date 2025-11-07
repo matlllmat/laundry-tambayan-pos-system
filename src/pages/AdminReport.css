@@ -1,0 +1,232 @@
+.admin-report-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  animation: fadeSlideIn 0.8s ease-out both;
+  animation-delay: 0.2s;
+}
+
+.admin-report-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  min-height: calc(100vh - 200px);
+  animation: fadeSlideIn 0.8s ease-out both;
+  animation-delay: 0.2s;
+}
+
+.report-wrapper {
+  width: 90%;
+  max-width: 1200px;
+  background: rgba(50, 70, 100, 0.85);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  padding: 2rem;
+}
+
+.report-header {
+  margin-bottom: 1.5rem;
+}
+
+.report-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+}
+
+/* Date Range Controls */
+.report-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.date-range-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(40, 60, 90, 0.9);
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  flex: 1;
+}
+
+.calendar-icon {
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+.date-label {
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.date-input {
+  flex: 1;
+  padding: 0.5rem 0.875rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: white !important;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.date-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(1);
+}
+
+.date-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.date-separator {
+  color: white;
+  font-size: 0.9rem;
+}
+
+.sum-display {
+  background: rgba(40, 60, 90, 0.9);
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+}
+
+.sum-label {
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* Table Container */
+.report-table-container {
+  background: rgba(220, 225, 230, 0.95);
+  border-radius: 12px;
+  padding: 1.5rem;
+  overflow: auto;
+  max-height: 500px;
+}
+
+/* Table Styles */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.report-table thead {
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.report-table thead th {
+  padding: 0.875rem 1.5rem;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
+  background: white;
+}
+
+.report-table tbody tr {
+  background: white;
+  border-bottom: 1px solid #d1d5db;
+  transition: background-color 0.2s;
+}
+
+.report-table tbody tr:hover:not(.empty-row) {
+  background: #f3f4f6;
+  cursor: pointer;
+}
+
+.report-table tbody tr.empty-row {
+  background: white;
+}
+
+.report-table tbody tr.empty-row:hover {
+  background: white;
+  cursor: default;
+}
+
+.report-table tbody td {
+  padding: 0.875rem 1.5rem;
+  font-size: 0.9rem;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .report-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-range-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-inputs {
+    flex-direction: column;
+  }
+
+  .date-input {
+    width: 100%;
+  }
+
+  .sum-display {
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-report-container {
+    padding: 1rem;
+  }
+
+  .report-wrapper {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  .report-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .report-table thead th,
+  .report-table tbody td {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}

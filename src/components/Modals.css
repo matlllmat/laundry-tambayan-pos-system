@@ -1,0 +1,28 @@
+.modal-content {
+  align-self: left;
+  background: rgba(30, 45, 70, 0.95);
+  border-radius: 10px;
+  color: white;
+}
+
+.modal-content .btn-primary {
+  background-color: #1a2c44;
+  border: none;
+}
+
+.error-modal {
+  text-align: left;
+  color: white;
+  border-radius: 10px;
+}
+
+.ok-btn {
+  width: 100%;
+  background-color: #0d6efd;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.ok-btn:hover {
+  background-color: #0b5ed7;
+}

@@ -1,0 +1,16 @@
+.system-title {
+  position: absolute;
+  top: 50px;
+  left: 100px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.system-title {
+  opacity: 0;
+  animation: fadeSlideIn 0.8s ease-out forwards;
+  animation-delay: 0.2s;
+}

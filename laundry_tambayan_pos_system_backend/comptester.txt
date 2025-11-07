@@ -1,0 +1,253 @@
+===========================
+create_order.php
+<?php
+include("./helpers/check_cors.php");
+
+session_start();
+include("./helpers/db_connection.php");
+
+// Decode JSON input
+$data = json_decode(file_get_contents("php://input"), true);
+
+if (!$data) {
+    echo json_encode(["success" => false, "message" => "Invalid JSON input."]);
+    exit;
+}
+
+// Validate required fields
+$required = ["employee_id", "total_weight", "total_load", "total_amount", "customer_name", "schedule_type", "schedule_date", "order_items"];
+foreach ($required as $field) {
+    if (!isset($data[$field]) || $data[$field] === "") {
+        echo json_encode(["success" => false, "message" => "Missing field: $field"]);
+        exit;
+    }
+}
+
+// Prepare order insert
+$stmt = $conn->prepare("INSERT INTO orders (employee_id, total_weight, total_load, total_amount, customer_name, contact, address, schedule_type, schedule_date, order_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+$stmt->bind_param(
+    "iddssssss",
+    $data["employee_id"],
+    $data["total_weight"],
+    $data["total_load"],
+    $data["total_amount"],
+    $data["customer_name"],
+    $data["contact"],
+    $data["address"],
+    $data["schedule_type"],
+    $data["schedule_date"]
+);
+
+if (!$stmt->execute()) {
+    echo json_encode(["success" => false, "message" => "Failed to insert order: " . $stmt->error]);
+    exit;
+}
+
+$order_id = $conn->insert_id;
+
+// Insert order items
+$item_stmt = $conn->prepare("INSERT INTO order_items (order_id, service_name, price, calculated_amount) VALUES (?, ?, ?, ?)");
+foreach ($data["order_items"] as $item) {
+    $item_stmt->bind_param("isdd", $order_id, $item["service_name"], $item["price"], $item["calculated_amount"]);
+    $item_stmt->execute();
+}
+
+echo json_encode([
+    "success" => true,
+    "message" => "Order created successfully.",
+    "order_id" => $order_id
+]);
+
+$conn->close();
+
+===========================
+get_items.php
+<?php
+include("./helpers/check_cors.php");
+
+session_start();
+include("./helpers/db_connection.php");
+
+// Fetch all items
+$result = $conn->query("SELECT item_id, item_name, item_type, item_price FROM items");
+
+if (!$result) {
+    echo json_encode(["success" => false, "message" => "Query failed: " . $conn->error]);
+    exit;
+}
+
+$items = [];
+while ($row = $result->fetch_assoc()) {
+    $items[] = $row;
+}
+
+echo json_encode(["success" => true, "data" => $items]);
+$conn->close();
+
+===========================
+get_order_items.php
+<?php
+include("./helpers/check_cors.php");
+
+session_start();
+include("./helpers/db_connection.php");
+
+header('Content-Type: application/json');
+
+$query = "SELECT * FROM order_items";
+$result = mysqli_query($conn, $query);
+
+$orderItems = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $orderItems[] = $row;
+}
+
+echo json_encode($orderItems);
+
+===========================
+get_orders.php
+
+<?php
+include("./helpers/check_cors.php");
+
+session_start();
+include("./helpers/db_connection.php");
+
+header('Content-Type: application/json');
+
+$query = "SELECT * FROM orders";
+$result = mysqli_query($conn, $query);
+
+$orders = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $orders[] = $row;
+}
+
+echo json_encode($orders);
+
+===========================
+update_order_items.php
+<?php
+include("./helpers/check_cors.php");
+
+session_start();
+include("./helpers/db_connection.php");
+
+header('Content-Type: application/json');
+
+$data = json_decode(file_get_contents("php://input"), true);
+$order_id = $data['order_id'];
+$items = $data['items'];
+
+mysqli_query($conn, "DELETE FROM order_items WHERE order_id='$order_id'");
+
+foreach ($items as $item) {
+    $service_name = $item['service_name'];
+    $price = $item['price'];
+    $calculated_amount = $item['calculated_amount'];
+    mysqli_query($conn, "INSERT INTO order_items (order_id, service_name, price, calculated_amount)
+                         VALUES ('$order_id', '$service_name', '$price', '$calculated_amount')");
+}
+
+echo json_encode(["success" => true]);
+
+===========================
+update_order.php
+<?php
+include("./helpers/check_cors.php");
+
+session_start();
+include("./helpers/db_connection.php");
+
+header('Content-Type: application/json');
+
+$data = json_decode(file_get_contents("php://input"), true);
+
+$order_id = $data['order_id'];
+$total_weight = $data['total_weight'];
+$total_load = $data['total_load'];
+$total_amount = $data['total_amount'];
+$customer_name = $data['customer_name'];
+$contact = $data['contact'];
+$address = $data['address'];
+$schedule_type = $data['schedule_type'];
+$schedule_date = $data['schedule_date'];
+
+$query = "UPDATE orders 
+          SET total_weight='$total_weight', total_load='$total_load', total_amount='$total_amount',
+              customer_name='$customer_name', contact='$contact', address='$address',
+              schedule_type='$schedule_type', schedule_date='$schedule_date'
+          WHERE order_id='$order_id'";
+
+if (mysqli_query($conn, $query)) {
+    echo json_encode(["success" => true]);
+} else {
+    echo json_encode(["success" => false, "error" => mysqli_error($conn)]);
+}
+
+===========================
+verify_employee_password.php
+<?php
+include("./helpers/check_cors.php");
+
+session_start();
+include("./helpers/db_connection.php");
+
+header('Content-Type: application/json');
+
+// Check if user is logged in
+if (!isset($_SESSION['id'])) {
+    echo json_encode([
+        "success" => false, 
+        "message" => "Not authenticated. Please log in."
+    ]);
+    exit;
+}
+
+// Get the password from request
+$data = json_decode(file_get_contents("php://input"), true);
+$password = $data['password'] ?? '';
+
+if (empty($password)) {
+    echo json_encode([
+        "success" => false, 
+        "message" => "Password is required."
+    ]);
+    exit;
+}
+
+// Get the logged-in employee's ID from session
+$employee_id = $_SESSION['id'];
+
+// Fetch employee password from database
+$sql = "SELECT password FROM employees WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $employee_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    
+    // Compare passwords (trim both to handle whitespace)
+    if (trim($password) === trim($row['password'])) {
+        echo json_encode([
+            "success" => true,
+            "message" => "Password verified successfully."
+        ]);
+    } else {
+        echo json_encode([
+            "success" => false,
+            "message" => "Incorrect password."
+        ]);
+    }
+} else {
+    echo json_encode([
+        "success" => false,
+        "message" => "Employee not found."
+    ]);
+}
+
+$stmt->close();
+$conn->close();
+?>
