@@ -24,11 +24,8 @@ const CustomModal: React.FC<CustomModalProps> = ({
     type = "info",
 }) => {
     const handleOkClick = () => {
-        if (onConfirm) {
-            onConfirm();
-        } else {
+        if (onConfirm) onConfirm();
             onClose();
-        }
     };
 
     return (

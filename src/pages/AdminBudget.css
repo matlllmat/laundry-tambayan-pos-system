@@ -94,8 +94,8 @@
 .budget-table tbody td {
   padding: 0.625rem 1rem;
   font-size: 0.875rem;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: black;
+  border: 1px solid rgba(0, 0, 0, 0.15);
 }
 
 /* Right Side - Sidebar Form */

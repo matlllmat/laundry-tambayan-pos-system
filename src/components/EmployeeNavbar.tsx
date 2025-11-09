@@ -66,7 +66,7 @@ const EmployeeNavbar: React.FC = () => {
               className={`nav-item ${active === "Service" ? "active" : ""}`}
               onClick={() => handleClick("/service")}
             >
-              Service
+              Generate Order
             </a>
           </li>
           <li>
