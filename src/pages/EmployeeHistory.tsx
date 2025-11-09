@@ -23,6 +23,7 @@ interface OrderItem {
 interface Order {
     order_id: number;
     employee_id: number;
+    employee_name?: string; // Add optional employee name
     total_weight: number;
     total_load: number;
     total_amount: number;
@@ -56,12 +57,13 @@ const EmployeeHistory: React.FC = () => {
 
     const [searchTerm, setSearchTerm] = useState("");
     const [sortConfig, setSortConfig] = useState<{
-        key: keyof Order | null;
+        key: keyof Order | "order_status" | null;
         direction: "asc" | "desc";
-    }>({ key: null, direction: "asc" });
+    }>({ key: "order_id", direction: "desc" });
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
     const [showReceipt, setShowReceipt] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
+    const [hasUserEditedWeight, setHasUserEditedWeight] = useState(false);
 
     // Modal state
     const [modalConfig, setModalConfig] = useState({
@@ -167,8 +169,16 @@ const EmployeeHistory: React.FC = () => {
     const sortedOrders = [...filteredOrders].sort((a, b) => {
         if (!sortConfig.key) return 0;
 
-        let aValue = a[sortConfig.key];
-        let bValue = b[sortConfig.key];
+        let aValue: any;
+        let bValue: any;
+
+        if (sortConfig.key === "order_status") {
+            aValue = calculateOrderStatus(a);
+            bValue = calculateOrderStatus(b);
+        } else {
+            aValue = a[sortConfig.key];
+            bValue = b[sortConfig.key];
+        }
 
         if (sortConfig.key === "total_amount" || sortConfig.key === "total_weight" || sortConfig.key === "order_id") {
             aValue = Number(aValue);
@@ -185,7 +195,7 @@ const EmployeeHistory: React.FC = () => {
     });
 
     // Handle column sort
-    const handleSort = (key: keyof Order) => {
+    const handleSort = (key: keyof Order | "order_status") => {
         let direction: "asc" | "desc" = "asc";
         if (sortConfig.key === key && sortConfig.direction === "asc") {
             direction = "desc";
@@ -194,7 +204,7 @@ const EmployeeHistory: React.FC = () => {
     };
 
     // Get sort indicator
-    const getSortIndicator = (columnName: keyof Order) => {
+    const getSortIndicator = (columnName: keyof Order | "order_status") => {
         if (sortConfig.key === columnName) {
             return sortConfig.direction === "asc" ? "▲" : "▼";
         }
@@ -216,6 +226,9 @@ const EmployeeHistory: React.FC = () => {
 
     // Determine item type (service or addon) based on catalog
     const getItemType = (itemName: string): 'service' | 'addon' => {
+        // Delivery Fee is always a service
+        if (itemName === "Delivery Fee") return 'service';
+
         const foundService = services.find(s => s.item_name === itemName);
         if (foundService) return 'service';
         return 'addon';
@@ -230,7 +243,7 @@ const EmployeeHistory: React.FC = () => {
             item_name: item.service_name,
             price: Number(item.price),
             type: getItemType(item.service_name),
-            quantity: item.quantity || 1
+            quantity: Number(item.quantity) || 1
         }));
 
         // Store original item names for warning check
@@ -249,6 +262,7 @@ const EmployeeHistory: React.FC = () => {
         });
         setSelectedService("");
         setSelectedAddon("");
+        setHasUserEditedWeight(false);
         setIsEditMode(true);
     };
 
@@ -372,20 +386,20 @@ const EmployeeHistory: React.FC = () => {
 
     // Update service quantities when load weight changes
     useEffect(() => {
-        if (isEditMode && editForm.total_weight) {
+        if (isEditMode && editForm.total_weight && hasUserEditedWeight) {
             const weight = Number(editForm.total_weight);
             const loads = Math.ceil(weight / 7);
 
             setEditForm(prev => ({
                 ...prev,
                 selectedItems: prev.selectedItems.map(item =>
-                    item.type === 'service'
+                    item.type === 'service' && item.item_name !== 'Delivery Fee'
                         ? { ...item, quantity: loads }
                         : item
                 )
             }));
         }
-    }, [editForm.total_weight, isEditMode]);
+    }, [editForm.total_weight, isEditMode, hasUserEditedWeight]);
 
     // Auto-add/remove delivery fee when schedule type changes in edit mode
     useEffect(() => {
@@ -634,16 +648,62 @@ const EmployeeHistory: React.FC = () => {
 
     // Cancel edit mode
     const handleCancelEdit = () => {
-        setModalConfig({
-            show: true,
-            title: "Cancel Changes",
-            message: "Are you sure you want to cancel? All changes will be lost.",
-            type: "confirm",
-            onConfirm: () => {
-                setIsEditMode(false);
-                setModalConfig({ ...modalConfig, show: false });
+        if (!selectedTransaction) return;
+
+        const original = selectedTransaction.order;
+        const originalItems = selectedTransaction.items;
+
+        // Normalize and compare form fields
+        const formFieldsChanged =
+            editForm.customer_name.trim() !== original.customer_name.trim() ||
+            Number(editForm.total_weight) !== Number(original.total_weight) ||
+            editForm.schedule_type !== original.schedule_type ||
+            editForm.schedule_date !== original.schedule_date ||
+            (editForm.contact || '').trim() !== (original.contact || '').trim() ||
+            (editForm.address || '').trim() !== (original.address || '').trim() ||
+            editForm.password.trim() !== "";
+
+        // Check if items count changed
+        const itemsCountChanged = editForm.selectedItems.length !== originalItems.length;
+
+        // Check individual items details by finding matching items
+        let itemDetailsChanged = false;
+        if (!itemsCountChanged) {
+            // Check each current item against original
+            for (const currentItem of editForm.selectedItems) {
+                const origItem = originalItems.find(oi => oi.service_name === currentItem.item_name);
+
+                if (!origItem) {
+                    itemDetailsChanged = true;
+                    break;
+                }
+
+                // Convert both to numbers for comparison
+                if (Number(currentItem.quantity) !== Number(origItem.quantity || 1) ||
+                    Number(currentItem.price) !== Number(origItem.price)) {
+                    itemDetailsChanged = true;
+                    break;
+                }
             }
-        });
+        }
+
+        const hasChanges = formFieldsChanged || itemsCountChanged || itemDetailsChanged;
+
+        if (hasChanges) {
+            setModalConfig({
+                show: true,
+                title: "Cancel Changes",
+                message: "Are you sure you want to cancel? All changes will be lost.",
+                type: "confirm",
+                onConfirm: () => {
+                    setIsEditMode(false);
+                    setModalConfig(prev => ({ ...prev, show: false }));
+                }
+            });
+        } else {
+            // No changes made, just close
+            setIsEditMode(false);
+        }
     };
 
     const { loads: editLoads, amount: editAmount } = isEditMode ? calculateEditTotals() : { loads: 0, amount: 0 };
@@ -693,8 +753,8 @@ const EmployeeHistory: React.FC = () => {
                                 <th onClick={() => handleSort("total_amount")}>
                                     Amount <span>{getSortIndicator("total_amount")}</span>
                                 </th>
-                                <th>
-                                    Order Status
+                                <th onClick={() => handleSort("order_status")}>
+                                    Order Status <span>{getSortIndicator("order_status")}</span>
                                 </th>
                             </tr>
                         </thead>
@@ -755,8 +815,8 @@ const EmployeeHistory: React.FC = () => {
                                             <span className="receipt-value">{selectedTransaction.order.order_id}</span>
                                         </div>
                                         <div className="receipt-row">
-                                            <span className="receipt-label">Employee ID:</span>
-                                            <span className="receipt-value">{selectedTransaction.order.employee_id}</span>
+                                            <span className="receipt-label">Employee Name:</span>
+                                            <span className="receipt-value">{selectedTransaction.order.employee_name || 'Unknown'}</span>
                                         </div>
                                         <div className="receipt-row">
                                             <span className="receipt-label">Customer Name:</span>
@@ -824,7 +884,7 @@ const EmployeeHistory: React.FC = () => {
                                                 {selectedTransaction.items.map((item, index) => (
                                                     <tr key={index}>
                                                         <td>{item.service_name}</td>
-                                                        <td>{getItemType(item.service_name) === 'service' ? 'Service' : 'Addon'}</td>
+                                                        <td>{item.service_name === 'Delivery Fee' ? 'Service' : (getItemType(item.service_name) === 'service' ? 'Service' : 'Addon')}</td>
                                                         <td>₱{Number(item.price).toFixed(2)}</td>
                                                         <td>{item.quantity || 1}</td>
                                                         <td>₱{Number(item.calculated_amount).toFixed(2)}</td>
@@ -860,8 +920,8 @@ const EmployeeHistory: React.FC = () => {
                                             <span className="receipt-value">{selectedTransaction.order.order_id}</span>
                                         </div>
                                         <div className="receipt-row">
-                                            <span className="receipt-label">Employee ID:</span>
-                                            <span className="receipt-value">{selectedTransaction.order.employee_id}</span>
+                                            <span className="receipt-label">Employee Name:</span>
+                                            <span className="receipt-value">{selectedTransaction.order.employee_name || 'Unknown'}</span>
                                         </div>
                                         <div className="receipt-row">
                                             <span className="receipt-label">Transaction Date:</span>
@@ -889,7 +949,10 @@ const EmployeeHistory: React.FC = () => {
                                             <input
                                                 type="number"
                                                 value={editForm.total_weight}
-                                                onChange={(e) => setEditForm({ ...editForm, total_weight: e.target.value })}
+                                                onChange={(e) => {
+                                                    setEditForm({ ...editForm, total_weight: e.target.value });
+                                                    setHasUserEditedWeight(true);
+                                                }}
                                                 className="edit-input"
                                             />
                                         </div>
@@ -1114,8 +1177,15 @@ const EmployeeHistory: React.FC = () => {
                 title={modalConfig.title}
                 message={modalConfig.message}
                 type={modalConfig.type}
-                onClose={() => setModalConfig({ ...modalConfig, show: false })}
-                onConfirm={modalConfig.onConfirm}
+                onClose={() => {
+                    setModalConfig({ ...modalConfig, show: false });
+                }}
+                onConfirm={() => {
+                    if (modalConfig.onConfirm) {
+                        modalConfig.onConfirm();
+                    }
+                    setModalConfig({ ...modalConfig, show: false });
+                }}
             />
         </div>
     );
