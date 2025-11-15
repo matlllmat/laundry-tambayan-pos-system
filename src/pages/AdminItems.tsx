@@ -1,27 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './AdminItems.css';
 import AdminNavbar from '../components/AdminNavbar';
 import SystemTitle from '../components/SystemTitle';
 import '../components/SystemTitle.css';
 import CustomModal from "../components/Modals";
 
+// Interface matches database
 interface Item {
-  id: number;
-  itemName: string;
-  itemType: string;
-  price: number;
+  item_id: number;
+  item_name: string;
+  item_type: string;
+  item_price: number;
 }
 
-const AdminItems = () => {
-  const [items, setItems] = useState<Item[]>([
-    { id: 1, itemName: 'Wash and Fold', itemType: 'Service', price: 50 },
-    { id: 2, itemName: 'Dry Clean', itemType: 'Service', price: 80 },
-    { id: 3, itemName: 'Detergent', itemType: 'Addons', price: 15 },
-    { id: 4, itemName: 'Fabric Softener', itemType: 'Addons', price: 20 },
-    { id: 5, itemName: 'Press and Iron', itemType: 'Service', price: 30 },
-  ]);
+// 1. --- API_URL Updated ---
+// Points to your backend folder, not an 'api' subfolder
+const API_URL = 'http://localhost/laundry_tambayan_pos_system_backend/'; 
 
-  const ADMIN_PASSWORD = 'admin123';
+const AdminItems = () => {
+  const [items, setItems] = useState<Item[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const [itemName, setItemName] = useState('');
@@ -33,45 +31,128 @@ const AdminItems = () => {
   const [showWrongPasswordModal, setShowWrongPasswordModal] = useState(false);
   const [showEmptyFieldsModal, setShowEmptyFieldsModal] = useState(false);
   const [showInvalidDataModal, setShowInvalidDataModal] = useState(false);
+  const [apiError, setApiError] = useState({ show: false, message: "" });
 
-  // Add or Update handler
-  const handleAddOrEdit = () => {
+  const fetchItems = async () => {
+    setIsLoading(true);
+    try {
+      // 2. --- Filename is appended to the base URL ---
+      const response = await fetch(`${API_URL}get_items.php`); 
+      const result = await response.json();
+      if (result.success) {
+        setItems(result.data);
+      } else {
+        setApiError({ show: true, message: result.message || "Failed to fetch items." });
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+      setApiError({ show: true, message: "A network error occurred." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const handleAddOrEdit = async () => {
     if (!itemName.trim() || !itemType || !price.trim() || !authPassword.trim()) {
       setShowEmptyFieldsModal(true);
       return;
     }
-
     const priceNum = parseFloat(price);
     if (isNaN(priceNum) || priceNum <= 0) {
       setShowInvalidDataModal(true);
       return;
     }
+    
+    const itemData = {
+      action: selectedItemId === null ? 'add' : 'update',
+      itemName: itemName.trim(),
+      itemType: itemType,
+      price: priceNum,
+      authPassword: authPassword,
+      itemId: selectedItemId 
+    };
 
-    if (authPassword !== ADMIN_PASSWORD) {
-      setShowWrongPasswordModal(true);
+    // 3. --- Points to the correct PHP file ---
+    const url = `${API_URL}manage_items.php`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(itemData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        clearForm();
+        fetchItems(); // Refresh
+      } else {
+        if (result.message.includes("Authentication")) {
+          setShowWrongPasswordModal(true);
+        } else if (result.message.includes("required") || result.message.includes("Missing")) {
+          setShowEmptyFieldsModal(true);
+        } else if (result.message.includes("Price")) {
+          setShowInvalidDataModal(true);
+        } else {
+          setApiError({ show: true, message: result.message || "An unknown error occurred." });
+        }
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      setApiError({ show: true, message: 'A network error occurred. Please try again.' });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!authPassword.trim()) {
+      setApiError({ show: true, message: "Please enter the authentication password to delete." });
       return;
     }
-
-    if (selectedItemId === null) {
-      // ADD MODE
-      const newItem: Item = {
-        id: items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1,
-        itemName: itemName.trim(),
-        itemType,
-        price: priceNum,
-      };
-      setItems([...items, newItem]);
-    } else {
-      // EDIT MODE
-      const updatedItems = items.map(item =>
-        item.id === selectedItemId
-          ? { ...item, itemName: itemName.trim(), itemType, price: priceNum }
-          : item
-      );
-      setItems(updatedItems);
+    if (!selectedItemId) {
+      setApiError({ show: true, message: "No item selected." });
+      return;
+    }
+    const isConfirmed = window.confirm(`Are you sure you want to delete the item "${itemName}"?\nThis action cannot be undone.`);
+    if (!isConfirmed) {
+      return; 
     }
 
-    clearForm();
+    const deleteData = {
+      action: 'delete',
+      itemId: selectedItemId,
+      authPassword: authPassword
+    };
+
+    // 4. --- Also points to the correct PHP file ---
+    const url = `${API_URL}manage_items.php`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(deleteData),
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        clearForm();
+        fetchItems(); // Refresh list
+      } else {
+        if (result.message.includes("Authentication")) {
+          setShowWrongPasswordModal(true);
+        } else {
+          setApiError({ show: true, message: result.message || "Failed to delete item." });
+        }
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      setApiError({ show: true, message: "A network error occurred." });
+    }
   };
 
   const clearForm = () => {
@@ -83,12 +164,14 @@ const AdminItems = () => {
   };
 
   const handleRowClick = (item: Item) => {
-    setSelectedItemId(item.id);
-    setItemName(item.itemName);
-    setItemType(item.itemType);
-    setPrice(item.price.toString());
+    setSelectedItemId(item.item_id);
+    setItemName(item.item_name);
+    setItemType(item.item_type);
+    setPrice(item.item_price.toString());
     setAuthPassword('');
   };
+  
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
   return (
     <div className="admin-history-page">
@@ -123,27 +206,29 @@ const AdminItems = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {items
+                  {isLoading ? (
+                    <tr><td colSpan={3} className="no-items-message">Loading...</td></tr>
+                  ) : items
                     .filter((item) =>
-                      item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      item.itemType.toLowerCase().includes(searchQuery.toLowerCase())
+                      item.item_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      item.item_type.toLowerCase().includes(searchQuery.toLowerCase())
                     )
                     .map((item) => (
                       <tr
-                        key={item.id}
+                        key={item.item_id}
                         onClick={() => handleRowClick(item)}
-                        className={selectedItemId === item.id ? 'selected-row' : ''}
+                        className={selectedItemId === item.item_id ? 'selected-row' : ''}
                       >
-                        <td>{item.itemName}</td>
-                        <td>{item.itemType}</td>
-                        <td>₱{item.price.toFixed(2)}</td>
+                        <td>{item.item_name}</td>
+                        <td>{capitalize(item.item_type)}</td>
+                        <td>₱{parseFloat(item.item_price.toString()).toFixed(2)}</td>
                       </tr>
                     ))}
 
-                  {items.filter(
+                  {!isLoading && items.filter(
                     (item) =>
-                      item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      item.itemType.toLowerCase().includes(searchQuery.toLowerCase())
+                      item.item_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      item.item_type.toLowerCase().includes(searchQuery.toLowerCase())
                   ).length === 0 && (
                       <tr>
                         <td colSpan={3} className="no-items-message">
@@ -176,8 +261,9 @@ const AdminItems = () => {
                 className="form-control admin-input"
               >
                 <option value="">Select type</option>
-                <option value="Service">Service</option>
-                <option value="Addons">Addons</option>
+                <option value="service">Service</option>
+                <option value="addon">Addons</option>
+                <option value="disabled">Disabled</option>
               </select>
             </div>
 
@@ -205,7 +291,7 @@ const AdminItems = () => {
                 autoComplete="new-password"
               />
             </div>
-
+            
             <div className="button-group">
               <button onClick={handleAddOrEdit} className="action-btn add-btn">
                 {selectedItemId === null ? 'Add' : 'Save'}
@@ -213,6 +299,12 @@ const AdminItems = () => {
               <button onClick={clearForm} className="action-btn cancel-btn">
                 {selectedItemId === null ? 'Clear' : 'Cancel'}
               </button>
+              
+              {selectedItemId !== null && (
+                <button onClick={handleDelete} className="action-btn delete-btn">
+                  Delete
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -226,7 +318,6 @@ const AdminItems = () => {
         onClose={() => setShowWrongPasswordModal(false)}
         type="error"
       />
-
       <CustomModal
         show={showEmptyFieldsModal}
         title="Missing Information"
@@ -234,12 +325,18 @@ const AdminItems = () => {
         onClose={() => setShowEmptyFieldsModal(false)}
         type="info"
       />
-
       <CustomModal
         show={showInvalidDataModal}
         title="Invalid Data"
         message="Please enter a valid price (must be a positive number)."
         onClose={() => setShowInvalidDataModal(false)}
+        type="error"
+      />
+      <CustomModal
+        show={apiError.show}
+        title="Error"
+        message={apiError.message}
+        onClose={() => setApiError({ show: false, message: "" })}
         type="error"
       />
     </div>

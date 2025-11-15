@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./AdminHistory.css";
 import AdminNavbar from "../components/AdminNavbar";
 import SystemTitle from "../components/SystemTitle";
 import CustomModal from "../components/Modals";
 
-// Define service item interface
 interface ServiceItem {
     name: string;
     qty: number;
@@ -12,7 +11,6 @@ interface ServiceItem {
     subtotal: number;
 }
 
-// Define transaction interface
 interface Transaction {
     id: string;
     orderNumber: string;
@@ -26,94 +24,11 @@ interface Transaction {
     total: number;
 }
 
-// Dummy data
-const dummyTransactions: Transaction[] = [
-    {
-        id: "1",
-        orderNumber: "ORD-001",
-        customerName: "Juan Dela Cruz",
-        loadWeight: "5",
-        numLoads: "2",
-        transactionDate: "2025-10-25",
-        scheduleType: "pickup",
-        scheduleDate: "2025-10-26",
-        serviceItems: [
-            { name: "Wash", qty: 2, price: 50, subtotal: 100 },
-            { name: "Dry", qty: 1, price: 40, subtotal: 40 },
-            { name: "Detergent", qty: 2, price: 15, subtotal: 30 }
-        ],
-        total: 170
-    },
-    {
-        id: "2",
-        orderNumber: "ORD-002",
-        customerName: "Maria Santos",
-        loadWeight: "8",
-        numLoads: "3",
-        transactionDate: "2025-10-26",
-        scheduleType: "delivery",
-        scheduleDate: "2025-10-28",
-        serviceItems: [
-            { name: "Wash", qty: 3, price: 50, subtotal: 150 },
-            { name: "Fold", qty: 2, price: 30, subtotal: 60 },
-            { name: "Fabcon", qty: 1, price: 20, subtotal: 20 }
-        ],
-        total: 230
-    },
-    {
-        id: "3",
-        orderNumber: "ORD-003",
-        customerName: "Pedro Reyes",
-        loadWeight: "3",
-        numLoads: "1",
-        transactionDate: "2025-10-27",
-        scheduleType: "pickup",
-        scheduleDate: "2025-10-27",
-        serviceItems: [
-            { name: "Wash", qty: 1, price: 50, subtotal: 50 },
-            { name: "Dry", qty: 1, price: 40, subtotal: 40 },
-            { name: "Detergent", qty: 1, price: 15, subtotal: 15 }
-        ],
-        total: 105
-    },
-    {
-        id: "4",
-        orderNumber: "ORD-004",
-        customerName: "Ana Garcia",
-        loadWeight: "10",
-        numLoads: "4",
-        transactionDate: "2025-10-27",
-        scheduleType: "delivery",
-        scheduleDate: "2025-10-29",
-        serviceItems: [
-            { name: "Wash", qty: 4, price: 50, subtotal: 200 },
-            { name: "Dry", qty: 3, price: 40, subtotal: 120 },
-            { name: "Fold", qty: 4, price: 30, subtotal: 120 },
-            { name: "Detergent", qty: 2, price: 15, subtotal: 30 },
-            { name: "Fabcon", qty: 2, price: 20, subtotal: 40 }
-        ],
-        total: 510
-    },
-    {
-        id: "5",
-        orderNumber: "ORD-005",
-        customerName: "Carlos Mendoza",
-        loadWeight: "6",
-        numLoads: "2",
-        transactionDate: "2025-10-28",
-        scheduleType: "pickup",
-        scheduleDate: "2025-10-30",
-        serviceItems: [
-            { name: "Wash", qty: 2, price: 50, subtotal: 100 },
-            { name: "Dry", qty: 2, price: 40, subtotal: 80 },
-            { name: "Detergent", qty: 1, price: 15, subtotal: 15 }
-        ],
-        total: 195
-    }
-];
+const API_URL = 'http://localhost/laundry_tambayan_pos_system_backend/';
 
 const AdminHistory: React.FC = () => {
-    const [transactions, setTransactions] = useState<Transaction[]>(dummyTransactions);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
@@ -121,69 +36,80 @@ const AdminHistory: React.FC = () => {
         key: keyof Transaction | null;
         direction: "asc" | "desc";
     }>({ key: null, direction: "asc" });
+
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
     const [showReceipt, setShowReceipt] = useState(false);
 
-    // Delete modal states
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletePassword, setDeletePassword] = useState("");
     const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
 
-    // Alert modal states
     const [showModal, setShowModal] = useState(false);
     const [modalConfig, setModalConfig] = useState({
         title: "",
         message: "",
         type: "info" as "info" | "error" | "success"
     });
+    const resetFilters = () => {
+        setSearchTerm("");
+        setStartDate("");
+        setEndDate("");
+        fetchTransactions();
+    };
+    const fetchTransactions = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${API_URL}get_transactions.php`);
+            const result = await response.json();
+            if (result.success) {
+                setTransactions(result.data);
+            } else {
+                setModalConfig({ title: "Error", message: result.message, type: "error" });
+                setShowModal(true);
+            }
+        } catch (error) {
+            setModalConfig({ title: "Network Error", message: "Could not connect to server.", type: "error" });
+            setShowModal(true);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    // Filter transactions based on search and date range
+    useEffect(() => {
+        fetchTransactions();
+    }, []);
+
     const filteredTransactions = transactions.filter((transaction) => {
         const matchesSearch =
             transaction.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             transaction.orderNumber.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesDateRange = (() => {
-            if (!startDate && !endDate) return true;
-            const transDate = new Date(transaction.transactionDate);
-            const start = startDate ? new Date(startDate) : null;
-            const end = endDate ? new Date(endDate) : null;
+        const transDate = new Date(transaction.transactionDate + "T00:00:00");
+        const start = startDate ? new Date(startDate + "T00:00:00") : null;
+        const end = endDate ? new Date(endDate + "T23:59:59") : null;
 
-            if (start && end) {
-                return transDate >= start && transDate <= end;
-            } else if (start) {
-                return transDate >= start;
-            } else if (end) {
-                return transDate <= end;
-            }
-            return true;
-        })();
+        if (start && end) return transDate >= start && transDate <= end;
+        if (start) return transDate >= start;
+        if (end) return transDate <= end;
 
-        return matchesSearch && matchesDateRange;
+        return matchesSearch;
     });
 
-    // Sort transactions
     const sortedTransactions = [...filteredTransactions].sort((a, b) => {
         if (!sortConfig.key) return 0;
-
-        let aValue = a[sortConfig.key];
-        let bValue = b[sortConfig.key];
+        let aValue: any = a[sortConfig.key];
+        let bValue: any = b[sortConfig.key];
 
         if (sortConfig.key === "total") {
             aValue = Number(aValue);
             bValue = Number(bValue);
         }
 
-        if (aValue < bValue) {
-            return sortConfig.direction === "asc" ? -1 : 1;
-        }
-        if (aValue > bValue) {
-            return sortConfig.direction === "asc" ? 1 : -1;
-        }
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
     });
 
-    // Handle column sort
     const handleSort = (key: keyof Transaction) => {
         let direction: "asc" | "desc" = "asc";
         if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -192,7 +118,6 @@ const AdminHistory: React.FC = () => {
         setSortConfig({ key, direction });
     };
 
-    // Get sort indicator
     const getSortIndicator = (columnName: keyof Transaction) => {
         if (sortConfig.key === columnName) {
             return sortConfig.direction === "asc" ? "▲" : "▼";
@@ -200,43 +125,58 @@ const AdminHistory: React.FC = () => {
         return "";
     };
 
-    // Handle row click to show receipt
     const handleRowClick = (transaction: Transaction) => {
         setSelectedTransaction(transaction);
         setShowReceipt(true);
     };
 
-    // Handle delete button click
     const handleDeleteClick = (e: React.MouseEvent, transactionId: string) => {
-        e.stopPropagation(); // Prevent row click
+        e.stopPropagation();
         setTransactionToDelete(transactionId);
         setShowDeleteModal(true);
         setDeletePassword("");
     };
 
-    // Handle delete confirmation
-    const handleDeleteConfirm = () => {
-        if (deletePassword !== "admin123") {
-            setShowDeleteModal(false);
+    const handleDeleteConfirm = async () => {
+        if (!transactionToDelete) return;
+
+        if (deletePassword === "") {
             setModalConfig({
-                title: "Authentication Failed",
-                message: "Invalid authorization password. Transaction not deleted.",
-                type: "error"
+                title: "Password Required",
+                message: "Please enter the authentication password.",
+                type: "info"
             });
             setShowModal(true);
-            setDeletePassword("");
             return;
         }
 
-        if (transactionToDelete) {
-            setTransactions(transactions.filter(t => t.id !== transactionToDelete));
-            setShowDeleteModal(false);
-            setModalConfig({
-                title: "Success",
-                message: "Transaction deleted successfully.",
-                type: "success"
+        try {
+            const response = await fetch(`${API_URL}manage_transactions.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'delete',
+                    transactionId: transactionToDelete,
+                    authPassword: deletePassword
+                })
             });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setTransactions(transactions.filter(t => t.id !== transactionToDelete));
+                setModalConfig({ title: "Success", message: result.message, type: "success" });
+                setShowModal(true);
+            } else {
+                setModalConfig({ title: "Error", message: result.message, type: "error" });
+                setShowModal(true);
+            }
+
+        } catch (error) {
+            setModalConfig({ title: "Network Error", message: "Could not connect to server.", type: "error" });
             setShowModal(true);
+        } finally {
+            setShowDeleteModal(false);
             setDeletePassword("");
             setTransactionToDelete(null);
         }
@@ -252,7 +192,13 @@ const AdminHistory: React.FC = () => {
                 <div className="separator"></div>
 
                 <div className="filter-section">
-                    <h3 className="history-subtitle">All Transaction History</h3>
+                    <h3
+                        className="history-subtitle"
+                        style={{ cursor: "pointer"}}
+                        onClick={resetFilters}
+                    >
+                        All Transaction History
+                    </h3>
                     <div className="filter-controls">
                         <input
                             type="text"
@@ -261,13 +207,13 @@ const AdminHistory: React.FC = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="filter-input search-input"
                         />
+
                         <div className="date-range-container">
                             <input
                                 type="date"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
                                 className="filter-input date-input"
-                                placeholder="Start Date"
                             />
                             <span className="date-separator">to</span>
                             <input
@@ -275,7 +221,6 @@ const AdminHistory: React.FC = () => {
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
                                 className="filter-input date-input"
-                                placeholder="End Date"
                             />
                         </div>
                     </div>
@@ -300,27 +245,34 @@ const AdminHistory: React.FC = () => {
                                 <th>Actions</th>
                             </tr>
                         </thead>
+
                         <tbody>
-                            {sortedTransactions.map((transaction) => (
-                                <tr
-                                    key={transaction.id}
-                                    className="clickable-row"
-                                    onClick={() => handleRowClick(transaction)}
-                                >
-                                    <td>{transaction.orderNumber}</td>
-                                    <td>{transaction.customerName}</td>
-                                    <td>{transaction.transactionDate}</td>
-                                    <td>₱{transaction.total}</td>
-                                    <td>
-                                        <button
-                                            className="delete-btn"
-                                            onClick={(e) => handleDeleteClick(e, transaction.id)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                            {isLoading ? (
+                                <tr><td colSpan={5} style={{ textAlign: "center" }}>Loading...</td></tr>
+                            ) : sortedTransactions.length > 0 ? (
+                                sortedTransactions.map((transaction) => (
+                                    <tr
+                                        key={transaction.id}
+                                        className="clickable-row"
+                                        onClick={() => handleRowClick(transaction)}
+                                    >
+                                        <td>{transaction.orderNumber}</td>
+                                        <td>{transaction.customerName}</td>
+                                        <td>{transaction.transactionDate}</td>
+                                        <td>₱{transaction.total.toFixed(2)}</td>
+                                        <td>
+                                            <button
+                                                className="delete-btn"
+                                                onClick={(e) => handleDeleteClick(e, transaction.id)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr><td colSpan={5} style={{ textAlign: "center" }}>No transactions found.</td></tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -334,17 +286,21 @@ const AdminHistory: React.FC = () => {
                             <h2>Transaction Receipt</h2>
                             <button className="close-btn" onClick={() => setShowReceipt(false)}>✕</button>
                         </div>
+
                         <div className="receipt-content">
                             <div className="receipt-section">
                                 <h3>Order Information</h3>
+
                                 <div className="receipt-row">
                                     <span className="receipt-label">Order Number:</span>
                                     <span className="receipt-value">{selectedTransaction.orderNumber}</span>
                                 </div>
+
                                 <div className="receipt-row">
                                     <span className="receipt-label">Customer Name:</span>
                                     <span className="receipt-value">{selectedTransaction.customerName}</span>
                                 </div>
+
                                 <div className="receipt-row">
                                     <span className="receipt-label">Transaction Date:</span>
                                     <span className="receipt-value">{selectedTransaction.transactionDate}</span>
@@ -353,18 +309,22 @@ const AdminHistory: React.FC = () => {
 
                             <div className="receipt-section">
                                 <h3>Service Details</h3>
+
                                 <div className="receipt-row">
                                     <span className="receipt-label">Load Weight:</span>
                                     <span className="receipt-value">{selectedTransaction.loadWeight} KG</span>
                                 </div>
+
                                 <div className="receipt-row">
                                     <span className="receipt-label">Number of Loads:</span>
                                     <span className="receipt-value">{selectedTransaction.numLoads}</span>
                                 </div>
+
                                 <div className="receipt-row">
                                     <span className="receipt-label">Schedule Type:</span>
                                     <span className="receipt-value">{selectedTransaction.scheduleType.toUpperCase()}</span>
                                 </div>
+
                                 <div className="receipt-row">
                                     <span className="receipt-label">Schedule Date:</span>
                                     <span className="receipt-value">{selectedTransaction.scheduleDate}</span>
@@ -387,8 +347,8 @@ const AdminHistory: React.FC = () => {
                                             <tr key={index}>
                                                 <td>{item.name}</td>
                                                 <td>{item.qty}</td>
-                                                <td>₱{item.price}</td>
-                                                <td>₱{item.subtotal}</td>
+                                                <td>₱{item.price.toFixed(2)}</td>
+                                                <td>₱{item.subtotal.toFixed(2)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -397,7 +357,7 @@ const AdminHistory: React.FC = () => {
 
                             <div className="receipt-total">
                                 <span className="total-label">TOTAL AMOUNT:</span>
-                                <span className="total-value">₱{selectedTransaction.total}</span>
+                                <span className="total-value">₱{selectedTransaction.total.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
@@ -411,6 +371,7 @@ const AdminHistory: React.FC = () => {
                         <div className="delete-modal-header">
                             <h3>Delete Transaction</h3>
                         </div>
+
                         <div className="delete-modal-content">
                             <p>Enter authorization password to delete this transaction:</p>
                             <input
@@ -422,10 +383,12 @@ const AdminHistory: React.FC = () => {
                                 autoFocus
                             />
                         </div>
+
                         <div className="delete-modal-actions">
                             <button className="confirm-delete-btn" onClick={handleDeleteConfirm}>
                                 Confirm Delete
                             </button>
+
                             <button
                                 className="cancel-delete-btn"
                                 onClick={() => {

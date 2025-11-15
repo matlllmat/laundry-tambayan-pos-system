@@ -403,7 +403,7 @@
 
 .delete-modal-content p {
   margin: 0 0 15px 0;
-  color: #222;
+  color: black;
   font-size: 1rem;
 }
 
@@ -414,7 +414,7 @@
   border: 1px solid #ccc;
   font-size: 0.95rem;
   background-color: #fff;
-  color: black;
+  color: black !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
   box-sizing: border-box;
