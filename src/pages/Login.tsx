@@ -115,8 +115,8 @@ const Login: React.FC = () => {
 
       <CustomModal
         show={showError}
-        title="Incorrect Password"
-        message="The password you entered is incorrect. Please try again."
+        title="Incorrect Credentials"
+        message="The credentials you entered is incorrect. Please try again."
         type="error"
         onClose={() => setShowError(false)}
       />

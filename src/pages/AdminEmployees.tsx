@@ -5,7 +5,6 @@ import CustomModal from "../components/Modals";
 import "./AdminEmployees.css";
 import SettingsFooter from "../components/SettingsFooter";
 
-// 1. Interface updated to include 'salary_daily'
 interface Employee {
   id: number;
   name: string;
@@ -13,7 +12,7 @@ interface Employee {
   phone: string;
   salary: number;
   type: 'admin' | 'employee';
-  salary_daily: number; // Added this
+  salary_daily: number;
 }
 
 const API_URL = 'http://localhost/laundry_tambayan_pos_system_backend/';
@@ -46,7 +45,6 @@ const AdminEmployees = () => {
     type: "info" as "info" | "error" | "success",
   });
 
-  // PASSWORD VALIDATION FUNCTION - ADD THIS
   const validatePassword = (password: string) => {
     if (password.length < 8) {
       return "Password must be at least 8 characters long.";
@@ -66,6 +64,11 @@ const AdminEmployees = () => {
     return null;
   };
 
+  // NEW: Check if this is the last admin
+  const isLastAdmin = (): boolean => {
+    const adminCount = employees.filter(emp => emp.type === 'admin').length;
+    return adminCount === 1 && selectedEmployee?.type === 'admin';
+  };
 
   const fetchEmployees = async () => {
     setIsLoading(true);
@@ -104,15 +107,9 @@ const AdminEmployees = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    // Phone number validation: must start with 09 and be max 11 digits
     if (name === "phone") {
-      // Only allow digits
       const digitsOnly = value.replace(/\D/g, '');
-
-      // Limit to 11 digits
       if (digitsOnly.length > 11) return;
-
-      // Allow typing, but we'll validate on submit
       setFormData({ ...formData, [name]: digitsOnly });
       return;
     }
@@ -135,7 +132,6 @@ const AdminEmployees = () => {
     setShowAddModal(true);
   };
 
-  // handleSubmit (ADD) - WITH PASSWORD VALIDATION
   const handleSubmit = async () => {
     const { name, email, phone, salary, password, authPassword, type } = formData;
 
@@ -146,12 +142,10 @@ const AdminEmployees = () => {
       return setModalInfo({ show: true, title: "Invalid Email", message: "Please enter a valid email.", type: "error" });
     }
 
-    // Phone validation: exactly 11 digits starting with 09
     if (!/^09\d{9}$/.test(phone)) {
       return setModalInfo({ show: true, title: "Invalid Phone", message: "Phone number must be exactly 11 digits starting with 09.", type: "error" });
     }
 
-    // VALIDATE PASSWORD HERE
     const passwordError = validatePassword(password);
     if (passwordError) {
       return setModalInfo({ show: true, title: "Invalid Password", message: passwordError, type: "error" });
@@ -182,7 +176,7 @@ const AdminEmployees = () => {
       if (result.success) {
         setModalInfo({ show: true, title: "Success", message: result.message, type: "success" });
         setShowAddModal(false);
-        fetchEmployees(); // Refresh list
+        fetchEmployees();
       } else {
         setModalInfo({ show: true, title: "Error", message: result.message, type: "error" });
       }
@@ -191,7 +185,6 @@ const AdminEmployees = () => {
     }
   };
 
-  // Open Edit Modal
   const handleEditClick = (employee: Employee) => {
     setEditing(true);
     setSelectedEmployee(employee);
@@ -207,7 +200,6 @@ const AdminEmployees = () => {
     setShowAddModal(true);
   };
 
-  // handleUpdate (SAVE) - WITH PASSWORD VALIDATION
   const handleUpdate = async () => {
     const { name, email, phone, salary, password, authPassword, type } = formData;
 
@@ -218,12 +210,10 @@ const AdminEmployees = () => {
       return setModalInfo({ show: true, title: "Invalid Email", message: "Please enter a valid email.", type: "error" });
     }
 
-    // Phone validation: exactly 11 digits starting with 09
     if (!/^09\d{9}$/.test(phone)) {
       return setModalInfo({ show: true, title: "Invalid Phone", message: "Phone number must be exactly 11 digits starting with 09.", type: "error" });
     }
 
-    // VALIDATE PASSWORD ONLY IF USER IS CHANGING IT
     if (password) {
       const passwordError = validatePassword(password);
       if (passwordError) {
@@ -260,7 +250,7 @@ const AdminEmployees = () => {
         setShowAddModal(false);
         setEditing(false);
         setSelectedEmployee(null);
-        fetchEmployees(); // Refresh list
+        fetchEmployees();
       } else {
         setModalInfo({ show: true, title: "Error", message: result.message, type: "error" });
       }
@@ -269,21 +259,28 @@ const AdminEmployees = () => {
     }
   };
 
-  // handleRemove (DELETE)
-  // handleRemove (DELETE)
+  // UPDATED: Check if last admin before deleting
   const handleRemove = async () => {
     if (!formData.authPassword) {
       return setModalInfo({ show: true, title: "Error", message: "Authentication password is required to delete.", type: "error" });
     }
     if (!selectedEmployee) return;
 
-    // Show custom confirmation modal instead of browser confirm
+    // NEW: Prevent deletion of last admin
+    if (isLastAdmin()) {
+      return setModalInfo({
+        show: true,
+        title: "Cannot Delete",
+        message: "Cannot delete the last admin account. The system must have at least one admin.",
+        type: "error"
+      });
+    }
+
     setShowDeleteConfirm(true);
   };
 
-  // New function to handle confirmed deletion
   const handleConfirmDelete = async () => {
-    setShowDeleteConfirm(false); // Close confirmation modal first
+    setShowDeleteConfirm(false);
 
     if (!selectedEmployee) return;
 
@@ -304,7 +301,7 @@ const AdminEmployees = () => {
         setShowAddModal(false);
         setEditing(false);
         setSelectedEmployee(null);
-        fetchEmployees(); // Refresh list
+        fetchEmployees();
       } else {
         setModalInfo({ show: true, title: "Error", message: result.message, type: "error" });
       }
@@ -313,7 +310,6 @@ const AdminEmployees = () => {
     }
   };
 
-  // Filter employees
   const filteredEmployees = employees.filter(
     (emp) =>
       emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -406,14 +402,24 @@ const AdminEmployees = () => {
                   placeholder="09XXXXXXXXX"
                   maxLength={11}
                 />
+                <label>Salary (₱):</label>
+                <input
+                  type="number"
+                  name="salary"
+                  value={formData.salary}
+                  onChange={handleChange}
+                  placeholder="Enter salary"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+
+              <div>
                 <label>Employee Type:</label>
                 <select name="type" value={formData.type} onChange={handleChange}>
                   <option value="employee">Employee</option>
                   <option value="admin">Admin</option>
                 </select>
-              </div>
-
-              <div>
                 <label>{editing ? "Set New Password (optional):" : "Employee Password:"}</label>
                 <div style={{ position: "relative" }}>
                   <input
@@ -425,7 +431,6 @@ const AdminEmployees = () => {
                     placeholder={editing ? "Leave blank to keep old password" : "Enter password"}
                     style={{ paddingRight: !editing ? "40px" : undefined }}
                   />
-                  {/* Show eye icon ONLY in Add mode (not editing) */}
                   {!editing && (
                     <i
                       className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}
@@ -457,7 +462,18 @@ const AdminEmployees = () => {
               {editing ? (
                 <>
                   <button onClick={handleUpdate}>Save Changes</button>
-                  <button onClick={handleRemove} className="remove-btn">Delete</button>
+                  <button
+                    onClick={handleRemove}
+                    className="remove-btn"
+                    disabled={isLastAdmin()}
+                    style={{
+                      opacity: isLastAdmin() ? 0.5 : 1,
+                      cursor: isLastAdmin() ? 'not-allowed' : 'pointer'
+                    }}
+                    title={isLastAdmin() ? "Cannot delete the last admin" : "Delete employee"}
+                  >
+                    Delete
+                  </button>
                   <button
                     onClick={() => {
                       setShowAddModal(false);
@@ -482,7 +498,6 @@ const AdminEmployees = () => {
 
       <SettingsFooter />
 
-      {/* Alert Modal */}
       <CustomModal
         show={modalInfo.show}
         title={modalInfo.title}
@@ -491,7 +506,6 @@ const AdminEmployees = () => {
         type={modalInfo.type}
       />
 
-      {/* Delete Confirmation Modal */}
       <CustomModal
         show={showDeleteConfirm}
         title="Confirm Deletion"
@@ -503,7 +517,6 @@ const AdminEmployees = () => {
         cancelText="Cancel"
       />
     </div>
-
   );
 };
 
