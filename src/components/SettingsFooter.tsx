@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, X, Upload, User, Lock } from 'lucide-react';
+import { Settings, X, User } from 'lucide-react';
 import './SettingsFooter.css';
 
 interface UserInfo {
@@ -15,40 +15,23 @@ interface SettingsData {
     weight_per_load: string;
     load_limit: string;
     delivery_fee: string;
-    favicon_logo: string;
-    bacground_image: string;
 }
 
 const SettingsFooter: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [user, setUser] = useState<UserInfo | null>(null);
-    const [settings, setSettings] = useState<SettingsData>({
-        system_title: '',
-        weight_per_load: '',
-        load_limit: '',
-        delivery_fee: '',
-        favicon_logo: '',
-        bacground_image: ''
-    });
 
     const [editedUser, setEditedUser] = useState({ email: '', phone: '' });
     const [editedSettings, setEditedSettings] = useState<SettingsData>({
         system_title: '',
         weight_per_load: '',
         load_limit: '',
-        delivery_fee: '',
-        favicon_logo: '',
-        bacground_image: ''
+        delivery_fee: ''
     });
 
     const [authPassword, setAuthPassword] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
-
-    const [faviconFile, setFaviconFile] = useState<File | null>(null);
-    const [bgFile, setBgFile] = useState<File | null>(null);
-    const [faviconPreview, setFaviconPreview] = useState<string>('');
-    const [bgPreview, setBgPreview] = useState<string>('');
 
     useEffect(() => {
         if (isOpen) {
@@ -77,38 +60,22 @@ const SettingsFooter: React.FC = () => {
             const response = await fetch('http://localhost/laundry_tambayan_pos_system_backend/get_settings.php');
             const data = await response.json();
             if (data.success) {
-                const settingsObj: any = {};
+                const settingsObj: SettingsData = {
+                    system_title: '',
+                    weight_per_load: '',
+                    load_limit: '',
+                    delivery_fee: ''
+                };
                 data.settings.forEach((s: any) => {
-                    settingsObj[s.setting_name] = s.setting_value;
+                    if (s.setting_name in settingsObj) {
+                        settingsObj[s.setting_name as keyof SettingsData] = s.setting_value;
+                    }
                 });
-                setSettings(settingsObj);
                 setEditedSettings(settingsObj);
             }
         } catch (error) {
             console.error('Failed to fetch settings:', error);
         }
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'favicon' | 'bg') => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            setMessage({ type: 'error', text: 'Please upload an image file' });
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            if (type === 'favicon') {
-                setFaviconFile(file);
-                setFaviconPreview(reader.result as string);
-            } else {
-                setBgFile(file);
-                setBgPreview(reader.result as string);
-            }
-        };
-        reader.readAsDataURL(file);
     };
 
     const validateForm = (): boolean => {
@@ -152,13 +119,8 @@ const SettingsFooter: React.FC = () => {
         return true;
     };
 
-    const handleSaveClick = () => {
-        if (!validateForm()) return;
-        setAuthPassword('');
-        setMessage({ type: '', text: '' });
-    };
-
     const handleConfirmSave = async () => {
+        if (!validateForm()) return;
         if (!editedUser.email && !editedUser.phone) return;
 
         setIsSaving(true);
@@ -208,36 +170,10 @@ const SettingsFooter: React.FC = () => {
                     setIsSaving(false);
                     return;
                 }
-
-                // --- Handle image uploads for admin ---
-                if (faviconFile || bgFile) {
-                    const formData = new FormData();
-                    if (faviconFile) formData.append('favicon', faviconFile);
-                    if (bgFile) formData.append('background', bgFile);
-                    formData.append('old_favicon', settings.favicon_logo);
-                    formData.append('old_background', settings.bacground_image);
-
-                    const uploadResponse = await fetch('http://localhost/laundry_tambayan_pos_system_backend/upload_images.php', {
-                        method: 'POST',
-                        credentials: 'include',
-                        body: formData
-                    });
-
-                    const uploadData = await uploadResponse.json();
-                    if (!uploadData.success) {
-                        setMessage({ type: 'error', text: uploadData.message });
-                        setIsSaving(false);
-                        return;
-                    }
-                }
             }
 
             setMessage({ type: 'success', text: 'Settings saved successfully!' });
             setAuthPassword('');
-            setFaviconFile(null);
-            setBgFile(null);
-            setFaviconPreview('');
-            setBgPreview('');
 
             fetchUserInfo();
             fetchSettings();
@@ -248,7 +184,6 @@ const SettingsFooter: React.FC = () => {
             setIsSaving(false);
         }
     };
-
 
     return (
         <>
@@ -369,7 +304,8 @@ const SettingsFooter: React.FC = () => {
                             />
                         </div>
                     </div>
-                    {/* Authentication input above Save Changes */}
+
+                    {/* Authentication input */}
                     <div className="settings-footer-input-group">
                         <label>Enter Password to Save:</label>
                         <input
@@ -383,7 +319,6 @@ const SettingsFooter: React.FC = () => {
                             spellCheck="false"
                             autoCorrect="off"
                         />
-
                     </div>
 
                     {/* Message display */}
@@ -393,7 +328,7 @@ const SettingsFooter: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Save / Cancel buttons */}
+                    {/* Save button */}
                     <div className="settings-footer-actions">
                         <button
                             className="settings-footer-save-btn"
