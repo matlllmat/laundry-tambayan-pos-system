@@ -1,3 +1,6 @@
+/* ============================================================
+   PAGE LAYOUT
+   ============================================================ */
 .admin-budget-page {
   display: flex;
   flex-direction: column;
@@ -6,284 +9,1046 @@
   animation-delay: 0.2s;
 }
 
-.admin-budget-container {
+.admin-budget-page .admin-budget-container {
   flex: 1;
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: center;
   padding: 2rem;
-  min-height: calc(100vh - 200px);
   margin-top: 1.5rem;
 }
 
-.budget-content-wrapper {
+.admin-budget-page .budget-content-wrapper {
   display: flex;
   gap: 2rem;
-  width: 90%;
-  max-width: 1400px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  align-items: stretch;
+  min-height: 600px;
 }
 
-/* Left Side - Table Container */
-.budget-table-section {
+/* ============================================================
+   TABLE SECTION (LEFT SIDE)
+   ============================================================ */
+.admin-budget-page .budget-table-section {
   flex: 1;
-  background: rgba(40, 60, 90, 0.75);
+  display: flex;
+  flex-direction: column;
+  background: rgba(40, 60, 90, 0.55);
   backdrop-filter: blur(10px);
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   overflow: hidden;
-  padding: 1.5rem;
+  min-height: 500px;
+  max-height: 920px;
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Add subtle border */
 }
 
-.budget-header {
-  background-color: transparent;
-  color: white;
-  padding: 0 0 1rem 0;
-  margin-bottom: 1rem;
+.admin-budget-page .budget-header {
+  background: rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  padding: 1rem 1.5rem;
+  flex-shrink: 0;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.budget-header h1 {
-  font-size: 1.75rem;
+.admin-budget-page .budget-header h1 {
+  font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
-  color: white;
+  color: #ffffff;
 }
 
-/* Table Styles */
-.budget-table {
-  width: 100%;
-  margin: 0;
-  border-collapse: collapse;
-  background: transparent;
+/* Table Wrapper with Scroll */
+.admin-budget-page .table-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 0 0.5rem;
 }
 
-.budget-table thead tr {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.admin-budget-page .table-wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.budget-table thead th {
-  padding: 0.625rem 1rem;
-  text-align: left;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
-}
-
-.budget-table tbody tr {
+.admin-budget-page .table-wrapper::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  transition: background-color 0.2s;
+  border-radius: 4px;
+  margin: 0.5rem 0;
 }
 
-.budget-table tbody tr:hover:not(.empty-row) {
-  background: rgba(255, 255, 255, 0.1);
+.admin-budget-page .table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.admin-budget-page .table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.admin-budget-page .budget-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: #333;
+  margin-top: 40px;
+}
+
+.admin-budget-page .budget-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.admin-budget-page .budget-table thead th {
+  padding: 0.875rem 1.5rem;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1f2937;
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.admin-budget-page .budget-table thead th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.admin-budget-page .budget-table thead th:last-child {
+  border-top-right-radius: 8px;
+}
+
+.admin-budget-page .budget-table tbody tr {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s;
   cursor: pointer;
 }
 
-.budget-table tbody tr.empty-row {
-  background: rgba(255, 255, 255, 0.02);
+.admin-budget-page .budget-table tbody tr:nth-child(even) {
+  background-color: #f9fafb;
 }
 
-.budget-table tbody tr.empty-row:hover {
-  background: rgba(255, 255, 255, 0.02);
-  cursor: default;
-}
-
-.budget-table tbody td {
-  padding: 0.625rem 1rem;
-  font-size: 0.875rem;
-  color: black;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-}
-
-/* Right Side - Sidebar Form */
-.budget-sidebar {
-  width: 380px;
-  background: rgba(50, 70, 100, 0.85);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  padding: 1.75rem;
-  height: fit-content;
-  align-self: stretch;
-}
-
-.budget-table-section,
-.budget-sidebar {
-  height: 700px;
-}
-
-.budget-totals {
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-  margin-bottom: 1.5rem;
-  margin-top: 4rem;
-}
-
-.total-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.total-item label {
-  color: white;
-  font-size: 0.95rem;
+.admin-budget-page .budget-table tbody tr.selected-row {
   font-weight: 500;
-  min-width: 90px;
-  margin: 0;
 }
 
-.total-input {
-  flex: 1;
-  padding: 0.5rem 0.875rem;
-  background: rgba(180, 190, 200, 0.9);
-  border: none;
-  border-radius: 6px;
+.admin-budget-page .budget-table tbody td {
+  padding: 0.75rem 1.5rem;
   font-size: 0.9rem;
   color: #1f2937;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.admin-budget-page .budget-table tbody td.text-center {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* ============================================================
+   SIDEBAR FORM (RIGHT SIDE)
+   ============================================================ */
+.admin-budget-page .budget-sidebar {
+  width: 380px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(40, 60, 90, 0.55);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  transition: border-left 0.3s ease;
+}
+
+.admin-budget-page .budget-sidebar.add-mode {
+  border-left: 4px solid #4caf50;
+}
+
+.admin-budget-page .budget-sidebar.edit-mode {
+  border-left: 4px solid #ffc107;
+  animation: editPulse 0.5s ease;
+}
+
+@keyframes editPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.01);
+  }
+}
+
+/* Sidebar Header */
+.admin-budget-page .sidebar-header {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem 1.5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.admin-budget-page .sidebar-header h2 {
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-budget-page .sidebar-header h2 i {
+  font-size: 1.2rem;
+}
+
+.admin-budget-page .edit-badge {
+  display: inline-block;
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
   font-weight: 500;
-  cursor: default;
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  margin-top: 0.25rem;
 }
 
-.total-input:focus {
-  outline: none;
-  background: rgba(180, 190, 200, 0.9);
+/* Sidebar Content */
+.admin-budget-page .sidebar-content {
+  flex: 1;
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
 }
 
-.budget-form .form-group {
+.admin-budget-page .sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-budget-page .sidebar-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-budget-page .sidebar-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+/* ============================================================
+   BUDGET TOTALS
+   ============================================================ */
+.admin-budget-page .budget-sidebar .budget-totals {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
   margin-bottom: 1rem;
 }
 
-.budget-form label {
+.admin-budget-page .budget-sidebar .total-item {
+  margin-bottom: 0.75rem;
+}
+
+.admin-budget-page .budget-sidebar .total-item:last-child {
+  margin-bottom: 0;
+}
+
+.admin-budget-page .budget-sidebar .total-item label {
+  display: block;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.admin-budget-page .budget-sidebar .total-value {
+  width: 100%;
+  color: #000000;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: #ffffff;
+  padding: 0.5rem 0.875rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-align: right;
+}
+
+/* ============================================================
+   FORM ELEMENTS
+   ============================================================ */
+.admin-budget-page .budget-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-budget-page .budget-sidebar .form-group {
+  margin-bottom: 1rem;
+}
+
+.admin-budget-page .budget-sidebar .form-group label {
   display: block;
   color: white;
   font-size: 0.9rem;
   font-weight: 500;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
-.budget-input {
+.admin-budget-page .budget-sidebar .form-control {
   width: 100%;
   padding: 0.5rem 0.875rem;
-  background: rgba(255, 255, 255, 0.9) !important;
+  background: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 6px;
   font-size: 0.9rem;
-  color: #333 !important;
+  color: #000000;
   transition: all 0.2s;
+  -webkit-text-fill-color: #000000;
 }
 
-.budget-input::placeholder {
-  color: #333 !important;
+.admin-budget-page .budget-sidebar .form-control::placeholder {
+  color: #999;
 }
 
-.budget-input:focus {
+.admin-budget-page .budget-sidebar .form-control:focus {
   outline: none;
-  background: white !important;
+  background: #ffffff;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-  color: #333 !important;
+  color: #000000;
+  -webkit-text-fill-color: #000000;
 }
 
-.date-input-wrapper {
+/* Date Inputs */
+.admin-budget-page .budget-sidebar .date-inputs {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  flex-direction: row;
+  gap: 0.75rem;
 }
 
-.date-label {
-  color: white;
-  font-size: 0.875rem;
-  font-weight: 500;
-  min-width: 45px;
-}
-
-.date-input {
+.admin-budget-page .budget-sidebar .date-input-group {
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  padding: 0.5rem 0.875rem;
-  background: rgba(255, 255, 255, 0.9) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  font-size: 0.875rem;
-  color: #555 !important;
+}
+
+.admin-budget-page .budget-sidebar .date-label {
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.admin-budget-page .budget-sidebar .date-input-group .form-control {
+  width: 100%;
+}
+
+.admin-budget-page
+  .budget-sidebar
+  .date-input-group
+  .form-control::-webkit-datetime-edit {
+  color: #000000;
+}
+
+.admin-budget-page
+  .budget-sidebar
+  .date-input-group
+  .form-control:focus::-webkit-datetime-edit {
+  color: #000000;
+}
+
+.admin-budget-page
+  .budget-sidebar
+  .date-input-group
+  .form-control::-webkit-calendar-picker-indicator {
   cursor: pointer;
+  filter: invert(1);
 }
 
-.date-input::-webkit-datetime-edit {
-  color: #555 !important;
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.admin-budget-page .budget-sidebar .button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
 }
 
-.date-input:focus::-webkit-datetime-edit {
-  color: #222 !important;
-}
-
-.date-input::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  filter: invert(0.5);
-}
-
-.button-group {
+.admin-budget-page .budget-sidebar .button-row {
   display: flex;
   gap: 0.75rem;
-  margin-top: 1.5rem;
 }
 
-.action-btn {
+.admin-budget-page .budget-sidebar .btn {
   flex: 1;
-  padding: 0.625rem 1.5rem;
-  background-color: #e5e7eb;
-  color: #1f2937;
+  min-width: 100px;
+  padding: 0.75rem 1.25rem;
   border: none;
-  border-radius: 25px;
-  font-weight: 500;
-  font-size: 0.95rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  text-align: center;
 }
 
-.action-btn:hover {
-  background-color: #d1d5db;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+.admin-budget-page .budget-sidebar .btn-primary {
+  background: rgb(9, 43, 90);
+  color: white;
+  box-shadow: 0 2px 4px rgba(9, 43, 90, 0.3);
 }
 
-.action-btn:active {
+.admin-budget-page .budget-sidebar .btn-primary:hover {
+  background: rgb(6, 49, 109);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(9, 43, 90, 0.4);
+}
+
+.admin-budget-page .budget-sidebar .btn-secondary {
+  background: #6c757d;
+  color: white;
+  box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+}
+
+.admin-budget-page .budget-sidebar .btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.4);
+}
+
+.admin-budget-page .budget-sidebar .btn-danger {
+  background: #dc3545;
+  color: white;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+  width: 100%;
+}
+
+.admin-budget-page .budget-sidebar .btn-danger:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+}
+
+.admin-budget-page .budget-sidebar .btn:active {
   transform: translateY(0);
 }
 
-/* Responsive Design */
-@media (max-width: 992px) {
-  .budget-content-wrapper {
+.admin-budget-page .budget-sidebar .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ============================================================
+   RESPONSIVE DESIGN
+   ============================================================ */
+@media (max-width: 1200px) {
+  .admin-budget-page .budget-content-wrapper {
     flex-direction: column;
-    width: 95%;
+    gap: 1.5rem;
   }
 
-  .budget-sidebar {
+  .admin-budget-page .budget-sidebar {
     width: 100%;
+    max-height: none;
+  }
+
+  .admin-budget-page .budget-table-section {
+    max-height: 500px;
   }
 }
 
 @media (max-width: 768px) {
-  .admin-budget-container {
+  .admin-budget-page .admin-budget-container {
     padding: 1rem;
+    margin-top: 1rem;
   }
 
-  .budget-header h1 {
+  .admin-budget-page .budget-content-wrapper {
+    gap: 1rem;
+  }
+
+  .admin-budget-page .budget-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .admin-budget-page .budget-header h1 {
     font-size: 1.25rem;
   }
 
-  .budget-table thead th,
-  .budget-table tbody td {
+  .admin-budget-page .budget-table thead th,
+  .admin-budget-page .budget-table tbody td {
     padding: 0.5rem 0.75rem;
     font-size: 0.85rem;
   }
 
-  .budget-content-wrapper {
-    margin-top: 0;
+  .admin-budget-page .sidebar-header {
+    padding: 1rem;
+  }
+
+  .admin-budget-page .sidebar-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .admin-budget-page .sidebar-content {
+    padding: 1rem;
+  }
+
+  .admin-budget-page .budget-sidebar .button-group {
+    flex-direction: column;
+  }
+
+  .admin-budget-page .budget-sidebar .button-row {
+    flex-direction: column;
+  }
+
+  .admin-budget-page .budget-sidebar .btn {
+    width: 100%;
+  }
+
+  .admin-budget-page .budget-sidebar .btn-danger {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-budget-page .budget-table thead th,
+  .admin-budget-page .budget-table tbody td {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .admin-budget-page .budget-sidebar .total-value {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .admin-budget-page .budget-sidebar .form-control {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .sidebar-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .sidebar-content {
+    padding: 1rem;
+  }
+
+  .budget-sidebar .button-group {
+    flex-direction: column;
+  }
+
+  .budget-sidebar .btn {
+    width: 100%;
+  }
+
+  .budget-sidebar .btn-danger {
+    flex-basis: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .budget-table thead th,
+  .budget-table tbody td {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .budget-sidebar .total-value {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .budget-sidebar .form-control {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* ============================================================
+   FILTER SECTION
+   ============================================================ */
+.admin-budget-page .budget-filters {
+  background: rgba(40, 60, 90, 0.55);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-budget-page .filter-row {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.admin-budget-page .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 0 0 auto; /* Changed from flex: 1 */
+  min-width: 200px;
+}
+
+.admin-budget-page .search-group {
+  width: 100%;
+  flex: 1 1 100%;
+}
+
+.admin-budget-page .filter-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.admin-budget-page .filter-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-budget-page .filter-separator {
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.admin-budget-page .filter-control {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #1f2937;
+  background: rgba(255, 255, 255, 0.95);
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.admin-budget-page .filter-control:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  background: #ffffff;
+}
+
+.admin-budget-page .search-input {
+  min-width: 250px;
+}
+
+.admin-budget-page .search-input::placeholder {
+  color: #9ca3af;
+}
+
+/* ============================================================
+   SORTABLE TABLE HEADERS
+   ============================================================ */
+.admin-budget-page .budget-table thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+.admin-budget-page .budget-table thead th.sortable:hover {
+  background: #d1d5db;
+}
+
+.admin-budget-page .budget-table thead th.sortable i {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* ============================================================
+   UPDATED TOTALS STYLING
+   ============================================================ */
+.admin-budget-page .budget-sidebar .total-item {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-budget-page .budget-sidebar .total-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.admin-budget-page .budget-sidebar .total-value.gross {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.admin-budget-page .budget-sidebar .total-value.expenses {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.admin-budget-page .budget-sidebar .total-value.net.positive {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+  font-weight: 700;
+}
+
+.admin-budget-page .budget-sidebar .total-value.net.negative {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  font-weight: 700;
+}
+
+/* ============================================================
+   RESPONSIVE DESIGN - UPDATE EXISTING MEDIA QUERIES
+   ============================================================ */
+@media (max-width: 1200px) {
+  .admin-budget-page .budget-content-wrapper {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .admin-budget-page .budget-sidebar {
+    width: 100%;
+    max-height: none;
+  }
+
+  .admin-budget-page .budget-table-section {
+    max-height: 500px;
+  }
+
+  /* Filter adjustments */
+  .admin-budget-page .budget-filters {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .admin-budget-page .filter-group {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-budget-page .admin-budget-container {
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  .admin-budget-page .budget-content-wrapper {
+    gap: 1rem;
+  }
+
+  .admin-budget-page .budget-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .admin-budget-page .budget-header h1 {
+    font-size: 1.25rem;
+  }
+
+  /* Filter adjustments */
+  .admin-budget-page .budget-filters {
+    padding: 1rem;
+  }
+
+  .admin-budget-page .filter-date-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-budget-page .filter-separator {
+    text-align: center;
+    padding: 0.25rem 0;
+  }
+
+  .admin-budget-page .search-input {
+    min-width: 100%;
+  }
+
+  .admin-budget-page .budget-table thead th,
+  .admin-budget-page .budget-table tbody td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .admin-budget-page .budget-table thead th.sortable i {
+    font-size: 0.7rem;
+  }
+
+  .admin-budget-page .sidebar-header {
+    padding: 1rem;
+  }
+
+  .admin-budget-page .sidebar-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .admin-budget-page .sidebar-content {
+    padding: 1rem;
+  }
+
+  .admin-budget-page .budget-sidebar .button-group {
+    flex-direction: column;
+  }
+
+  .admin-budget-page .budget-sidebar .button-row {
+    flex-direction: column;
+  }
+
+  .admin-budget-page .budget-sidebar .btn {
+    width: 100%;
+  }
+
+  .admin-budget-page .budget-sidebar .btn-danger {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-budget-page .budget-table thead th,
+  .admin-budget-page .budget-table tbody td {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .admin-budget-page .budget-filters {
+    padding: 0.75rem;
+  }
+
+  .admin-budget-page .filter-control {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .admin-budget-page .budget-sidebar .total-value {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .admin-budget-page .budget-sidebar .form-control {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* ============================================================
+   FILTER INPUT SPECIFIC STYLING (Override global styles)
+   ============================================================ */
+
+/* Date filter inputs - text color */
+.admin-budget-page .budget-filters .filter-control {
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
+  background: white !important;
+}
+
+/* Date filter inputs - placeholder */
+.admin-budget-page .budget-filters .filter-control::placeholder {
+  color: #9ca3af !important;
+  -webkit-text-fill-color: #9ca3af !important;
+  opacity: 1;
+}
+
+/* Date filter inputs - calendar icon */
+.admin-budget-page
+  .budget-filters
+  .filter-control::-webkit-calendar-picker-indicator {
+  filter: invert(0.5) !important;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.admin-budget-page
+  .budget-filters
+  .filter-control::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Date filter inputs - date text segments */
+.admin-budget-page .budget-filters .filter-control::-webkit-datetime-edit {
+  color: #1f2937 !important;
+}
+
+.admin-budget-page
+  .budget-filters
+  .filter-control::-webkit-datetime-edit-fields-wrapper {
+  color: #1f2937 !important;
+}
+
+.admin-budget-page .budget-filters .filter-control::-webkit-datetime-edit-text {
+  color: #1f2937 !important;
+}
+
+.admin-budget-page
+  .budget-filters
+  .filter-control::-webkit-datetime-edit-month-field,
+.admin-budget-page
+  .budget-filters
+  .filter-control::-webkit-datetime-edit-day-field,
+.admin-budget-page
+  .budget-filters
+  .filter-control::-webkit-datetime-edit-year-field {
+  color: #1f2937 !important;
+}
+
+/* Search input specific */
+.admin-budget-page .budget-filters .search-input {
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
+  background: white !important;
+}
+
+.admin-budget-page .budget-filters .search-input::placeholder {
+  color: #9ca3af !important;
+  -webkit-text-fill-color: #9ca3af !important;
+  opacity: 1;
+}
+
+/* Focus states */
+.admin-budget-page .budget-filters .filter-control:focus,
+.admin-budget-page .budget-filters .search-input:focus {
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
+  background: white !important;
+}
+
+.admin-budget-page .budget-filters .filter-control:focus::-webkit-datetime-edit,
+.admin-budget-page
+  .budget-filters
+  .filter-control:focus::-webkit-datetime-edit-fields-wrapper,
+.admin-budget-page
+  .budget-filters
+  .filter-control:focus::-webkit-datetime-edit-month-field,
+.admin-budget-page
+  .budget-filters
+  .filter-control:focus::-webkit-datetime-edit-day-field,
+.admin-budget-page
+  .budget-filters
+  .filter-control:focus::-webkit-datetime-edit-year-field {
+  color: #1f2937 !important;
+}
+
+/* ============================================================
+   FILTER SHORTCUTS
+   ============================================================ */
+.admin-budget-page .budget-filters {
+  padding: 1rem 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-budget-page .filter-row {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.admin-budget-page .search-group {
+  width: 100%;
+}
+
+.admin-budget-page .filter-shortcuts {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-budget-page .shortcut-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.875rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  backdrop-filter: blur(5px);
+}
+
+.admin-budget-page .shortcut-btn i {
+  font-size: 0.9rem;
+}
+
+.admin-budget-page .shortcut-btn:hover {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: #3b82f6;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.admin-budget-page .shortcut-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.admin-budget-page .shortcut-btn.active {
+  background: rgba(59, 130, 246, 0.5);
+  border-color: #3b82f6;
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* ============================================================
+   RESPONSIVE ADJUSTMENTS FOR SHORTCUTS
+   ============================================================ */
+@media (max-width: 1200px) {
+  .admin-budget-page .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-budget-page .filter-shortcuts {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-budget-page .filter-shortcuts {
+    width: 100%;
+  }
+
+  .admin-budget-page .shortcut-btn {
+    flex: 1;
+    justify-content: center;
+    min-width: calc(25% - 0.375rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-budget-page .filter-shortcuts {
+    gap: 0.4rem;
+  }
+
+  .admin-budget-page .shortcut-btn {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    min-width: calc(50% - 0.2rem);
+  }
+
+  .admin-budget-page .shortcut-btn i {
+    font-size: 0.85rem;
   }
 }

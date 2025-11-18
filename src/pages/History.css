@@ -44,6 +44,7 @@
   padding: 10px 20px;
   background-color: #f5f5f5;
   color: white;
+  margin-top: 10px;
 }
 
 .history-subtitle {
@@ -54,7 +55,10 @@
   padding: 10px 20px;
   border-radius: 10px 0px 20px 0;
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-  margin-left: 40px;
+  margin-top: 50px !important;
+  margin-left: 30px;
+  margin-bottom: 0;
+  width: 220px;
 }
 
 .filter-input {
@@ -68,6 +72,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
   margin-right: 20px;
+  margin-left: auto;
 }
 
 .filter-input::placeholder {
@@ -97,9 +102,11 @@
 }
 
 .transaction-table {
-  width: 100%;
+  width: 95%;
   border-collapse: collapse;
   min-width: 600px;
+  margin: 0 auto;
+  margin-top: 10px;
 }
 
 .transaction-table th,
@@ -196,15 +203,16 @@
   backdrop-filter: blur(3px);
 }
 
-.receipt-modal {
+.receipt-modal-overlay .receipt-modal {
   background: white;
   border-radius: 12px;
   width: 90%;
   max-width: 650px;
-  max-height: 85vh;
-  overflow-y: auto;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   animation: slideIn 0.3s ease;
+  position: relative;
 }
 
 @keyframes slideIn {
@@ -355,6 +363,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 100%;
 }
 
 .edit-order-btn:hover {
@@ -553,7 +562,7 @@
   }
 
   .table-container {
-    padding: 20px;
+    padding: 200px !important;
   }
 
   .receipt-modal {
@@ -818,12 +827,12 @@
 }
 
 .remove-btn {
-  background-color: #dc3545;
-  color: white;
+  background-color: white;
+  color: black;
 }
 
 .remove-btn:hover {
-  background-color: #b02a37;
+  background-color: #cfd8e0;
 }
 
 /* Addon +/- Controls */
@@ -857,4 +866,427 @@
   .action-btn {
     padding: 4px 8px;
   }
+}
+
+.edit-input::-webkit-calendar-picker-indicator {
+  filter: invert(1) !important; /* makes the icon black */
+}
+
+/* Date Filter Container (Admin Only) */
+.date-filter-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 8px;
+}
+
+.date-input {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 0.9rem;
+  background-color: #fff;
+  color: black !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.date-input:focus {
+  border-color: #2f6fed;
+  box-shadow: 0 0 5px rgba(47, 111, 237, 0.3);
+  outline: none;
+}
+
+.clear-filter-btn {
+  padding: 8px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.clear-filter-btn:hover {
+  background-color: #5a6268;
+}
+
+/* Delete Order Button */
+.delete-order-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.delete-order-btn:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Delete Confirmation Modal */
+.delete-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(3px);
+}
+
+.delete-confirm-modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  animation: slideIn 0.3s ease;
+}
+
+.delete-confirm-header {
+  background: #dc3545;
+  color: white;
+  padding: 20px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-confirm-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.delete-confirm-content {
+  padding: 25px;
+}
+
+.warning-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.warning-subtext {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.danger-notice {
+  background: #fff3cd;
+  border: 2px solid #ff9800;
+  color: #856404;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.delete-password-field {
+  margin-top: 20px;
+}
+
+.delete-password-field label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.delete-password-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  color: black !important;
+  background-color: white;
+}
+
+.delete-password-input:focus {
+  border-color: #dc3545;
+  outline: none;
+  box-shadow: 0 0 5px rgba(220, 53, 69, 0.3);
+}
+
+.delete-confirm-actions {
+  padding: 20px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  gap: 10px;
+}
+
+.cancel-delete-btn,
+.confirm-delete-btn {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-delete-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.cancel-delete-btn:hover {
+  background-color: #5a6268;
+}
+
+.confirm-delete-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.confirm-delete-btn:hover {
+  background-color: #c82333;
+}
+
+.confirm-delete-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Main box */
+.price-box {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.price-box.current {
+  background: #fff3e0;
+  border: 2px solid #ff9800;
+}
+
+.price-box.original {
+  background: #e3f2fd;
+  border: 2px solid #2196f3;
+}
+
+/* Header section */
+.price-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+/* Badge colors */
+.mode-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: white;
+}
+
+.mode-badge.current {
+  background: #ff9800;
+}
+
+.mode-badge.original {
+  background: #2196f3;
+}
+
+/* Description text */
+.price-description {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* CUSTOM CHECKBOX (fully stylable) */
+.checkbox-label {
+  font-weight: bold;
+  color: #1c2f4a;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* Hide native checkbox */
+.checkbox-label input {
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Custom box */
+.custom-checkbox {
+  width: 18px;
+  height: 18px;
+  background: white;
+  border: 2px solid #1c2f4a;
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+}
+
+/* Unchecked */
+.custom-checkbox {
+  width: 18px;
+  height: 18px;
+  background: white;
+  border: 2px solid #1c2f4a;
+  border-radius: 4px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+/* Price mode selector */
+.price-mode-selector {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.price-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+/* Checkbox label */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  color: #1c2f4a;
+  font-size: 0.95rem;
+}
+
+/* Hide default checkbox */
+.checkbox-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Custom checkbox */
+.custom-checkbox {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #6c757d;
+  border-radius: 4px;
+  background: white;
+  margin-right: 10px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+/* Checkmark */
+.custom-checkbox::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border-right: 2.5px solid white;
+  border-bottom: 2.5px solid white;
+  transform: scale(0) rotate(45deg);
+  transform-origin: bottom left;
+  transition: transform 0.25s ease-in-out;
+}
+
+/* Checked state */
+.checkbox-label input:checked + .custom-checkbox {
+  background: #1c2f4a;
+  border-color: #1c2f4a;
+}
+
+.checkbox-label input:checked + .custom-checkbox::after {
+  transform: scale(1) rotate(45deg);
+}
+
+/* Hover effect */
+.checkbox-label:hover .custom-checkbox {
+  border-color: #1c2f4a;
+}
+
+/* Mode badge */
+.mode-badge {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.mode-badge.current {
+  background: #1c2f4a;
+  color: white;
+}
+
+.mode-badge.original {
+  background: #6c757d;
+  color: white;
+}
+
+/* Description text */
+.price-mode-description {
+  font-size: 0.85rem;
+  color: #495057;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.price-mode-description strong {
+  color: #1c2f4a;
+  font-weight: 600;
+}
+
+.date-inputs .date-input {
+  color: #000;
+  border: 2px solid #ddd;
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+
+.date-inputs .date-input::-webkit-datetime-edit {
+  color: #000;
+}
+
+.date-inputs .date-input::placeholder {
+  color: #000;
 }

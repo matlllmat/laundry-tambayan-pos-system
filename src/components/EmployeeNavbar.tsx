@@ -50,6 +50,7 @@ const EmployeeNavbar: React.FC = () => {
       await fetch("http://localhost/laundry_tambayan_pos_system_backend/logout.php", {
         credentials: "include",
       });
+      sessionStorage.removeItem('laundry_service_draft');
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);

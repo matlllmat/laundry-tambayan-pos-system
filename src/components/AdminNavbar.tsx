@@ -32,7 +32,7 @@ const AdminNavbar: React.FC = () => {
 
   // Determine active link
   const getActive = () => {
-    if (location.pathname === "/adminhistory") return "AdminHistory";
+    if (location.pathname === "/history") return "History";
     if (location.pathname === "/adminreport") return "AdminReport";
     if (location.pathname === "/adminemployees") return "AdminEmployees";
     if (location.pathname === "/adminbudget") return "AdminBudget";
@@ -64,19 +64,10 @@ const AdminNavbar: React.FC = () => {
           <li>
             <a
               href="#"
-              className={`nav-item ${active === "AdminHistory" ? "active" : ""}`}
-              onClick={() => handleClick("/adminhistory")}
+              className={`nav-item ${active === "History" ? "active" : ""}`}
+              onClick={() => handleClick("/history")}
             >
               History
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              className={`nav-item ${active === "AdminReport" ? "active" : ""}`}
-              onClick={() => handleClick("/adminreport")}
-            >
-              Report
             </a>
           </li>
           <li>
@@ -91,6 +82,15 @@ const AdminNavbar: React.FC = () => {
           <li>
             <a
               href="#"
+              className={`nav-item ${active === "AdminItems" ? "active" : ""}`}
+              onClick={() => handleClick("/adminitems")}
+            >
+              Items
+            </a>
+          </li>
+          <li>
+            <a
+              href="#"
               className={`nav-item ${active === "AdminBudget" ? "active" : ""}`}
               onClick={() => handleClick("/adminbudget")}
             >
@@ -100,12 +100,13 @@ const AdminNavbar: React.FC = () => {
           <li>
             <a
               href="#"
-              className={`nav-item ${active === "AdminItems" ? "active" : ""}`}
-              onClick={() => handleClick("/adminitems")}
+              className={`nav-item ${active === "AdminReport" ? "active" : ""}`}
+              onClick={() => handleClick("/adminreport")}
             >
-              Items
+              Report
             </a>
           </li>
+
           <li>
             <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
               Logout

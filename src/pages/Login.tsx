@@ -49,7 +49,7 @@ const Login: React.FC = () => {
     setShowSuccess(false);
 
     if (userType === "admin") {
-      navigate("/adminhistory");
+      navigate("/history");
     } else if (userType === "employee") {
       navigate("/service");
     } else {

@@ -23,6 +23,17 @@
   margin-top: -5vh;
 }
 
+.table-responsive {
+  max-height: 400px;
+  max-width: 95%;
+  margin: auto;
+  overflow-y: auto;
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
 /* Left Side - Table Container */
 .items-table-container {
   flex: 1;
@@ -31,6 +42,18 @@
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   overflow: hidden;
+}
+
+.items-table thead th {
+  padding: 0.875rem 1.5rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-bottom: 2px solid #d1d5db;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .items-header {
@@ -87,6 +110,14 @@
   color: #333;
   border-radius: 12px;
   overflow: hidden;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.items-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 100; /* High z-index to stay on top */
 }
 
 .items-table thead tr {
@@ -94,23 +125,25 @@
 }
 
 .items-table thead th {
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.5rem;
   text-align: left;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.2s;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1f2937;
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
 }
 
 .items-table thead th:first-child {
-  border-top-left-radius: 12px;
+  border-top-left-radius: 8px;
 }
 
 .items-table thead th:last-child {
-  border-top-right-radius: 12px;
+  border-top-right-radius: 8px;
 }
 
 .sortable-header:hover {
@@ -128,15 +161,6 @@
   background-color: #f9fafb;
 }
 
-.items-table tbody tr:hover {
-  background-color: #e0f2fe;
-}
-
-.items-table tbody tr.selected-row {
-  background-color: #bfdbfe !important;
-  font-weight: 500;
-}
-
 .items-table tbody tr:last-child td:first-child {
   border-bottom-left-radius: 12px;
 }
@@ -149,14 +173,13 @@
   padding: 0.75rem 1.5rem;
   font-size: 0.9rem;
   color: #1f2937;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .no-items-message {
   text-align: center;
   color: white;
   padding: 2rem !important;
-  font-style: italic;
   background: rgba(40, 60, 90, 0.3) !important;
 }
 
@@ -216,35 +239,6 @@
   background: white;
 }
 
-.button-group {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1.75rem;
-}
-
-.action-btn {
-  flex: 1;
-  padding: 0.625rem 1.5rem;
-  background-color: #e5e7eb;
-  color: #1f2937;
-  border: none;
-  border-radius: 25px;
-  font-weight: 500;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.action-btn:hover {
-  background-color: #d1d5db;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.action-btn:active {
-  transform: translateY(0);
-}
-
 /* Responsive Design */
 @media (max-width: 992px) {
   .admin-content-wrapper {
@@ -275,4 +269,268 @@
   .admin-content-wrapper {
     margin-top: 0;
   }
+}
+
+/* Sidebar Header Styles */
+.sidebar-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-header h2 {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar-header h2 i {
+  font-size: 1.3rem;
+}
+
+.edit-badge {
+  display: inline-block;
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid rgba(255, 193, 7, 0.4);
+}
+
+/* Mode-based styling */
+.admin-sidebar.add-mode {
+  border-left: 4px solid #4caf50;
+}
+
+.admin-sidebar.edit-mode {
+  border-left: 4px solid #ffc107;
+  animation: editPulse 0.5s ease;
+}
+
+@keyframes editPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Items Count Badge */
+.items-count {
+  display: inline-block;
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  margin-left: 1rem;
+}
+
+.items-count span {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* Updated Items Header */
+.items-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+/* Input placeholders */
+.admin-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Sidebar Header Styles */
+.sidebar-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-header h2 {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar-header h2 i {
+  font-size: 1.3rem;
+}
+
+.edit-badge {
+  display: inline-block;
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid rgba(255, 193, 7, 0.4);
+}
+
+/* Mode-based styling */
+.admin-sidebar.add-mode {
+  border-left: 4px solid #4caf50;
+}
+
+.admin-sidebar.edit-mode {
+  border-left: 4px solid #ffc107;
+  animation: editPulse 0.5s ease;
+}
+
+@keyframes editPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Items Count Badge */
+.items-count {
+  display: inline-block;
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  margin-left: 1rem;
+}
+
+.items-count span {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* Updated Items Header */
+.items-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+/* Input placeholders */
+.admin-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Row for Add + Clear/Cancel */
+.button-group .top-row {
+  display: flex;
+  gap: 10px;
+}
+
+/* Base button style */
+.button-group .action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 120px; /* same width for Add + Clear */
+  text-align: center;
+  transition: background 0.2s ease;
+}
+
+/* --------------------
+   Add / Save Button
+-------------------- */
+.button-group .add-btn {
+  background: rgb(9, 43, 90);
+  color: white;
+}
+
+.button-group .add-btn:hover {
+  background: rgb(6, 34, 72); /* slightly darker */
+}
+
+/* --------------------
+   Clear / Cancel Button
+-------------------- */
+.button-group .cancel-btn {
+  background: #6c757d;
+  color: white;
+  box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+}
+
+.button-group .cancel-btn:hover {
+  background: #5a6268; /* slightly darker */
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.4);
+}
+
+/* --------------------
+   Delete Button (Full Width)
+-------------------- */
+.button-group .delete-btn {
+  width: 100%;
+  background-color: #d32f2f;
+  color: white;
+}
+
+.button-group .delete-btn:hover {
+  background-color: #b71c1c; /* slightly darker */
+}
+
+/* Disabled state */
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* AdminItems Table Row Styles - CORRECTED */
+.admin-history-page .table-responsive .items-table tbody tr {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s !important;
+  cursor: pointer !important;
+}
+
+.admin-history-page .table-responsive .items-table tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.admin-history-page .table-responsive .items-table tbody tr:hover {
+  background-color: #e0f2fe !important;
+}
+
+.admin-history-page .table-responsive .items-table tbody tr.selected-row {
+  background-color: #bfdbfe !important;
+  font-weight: 500 !important;
+}
+
+.admin-history-page .table-responsive .items-table tbody tr.selected-row:hover {
+  background-color: #bfdbfe !important;
 }

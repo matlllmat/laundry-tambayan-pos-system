@@ -3,6 +3,7 @@ import AdminNavbar from "../components/AdminNavbar";
 import SystemTitle from "../components/SystemTitle";
 import CustomModal from "../components/Modals";
 import "./AdminEmployees.css";
+import SettingsFooter from "../components/SettingsFooter";
 
 // 1. Interface updated to include 'salary_daily'
 interface Employee {
@@ -23,6 +24,8 @@ const AdminEmployees = () => {
   const [editing, setEditing] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -43,11 +46,33 @@ const AdminEmployees = () => {
     type: "info" as "info" | "error" | "success",
   });
 
-  // 5. Function to fetch employees from DB
+  // PASSWORD VALIDATION FUNCTION - ADD THIS
+  const validatePassword = (password: string) => {
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long.";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter.";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter.";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "Password must contain at least one number.";
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      return "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>).";
+    }
+    return null;
+  };
+
+
   const fetchEmployees = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}get_employees.php`);
+      const response = await fetch(`${API_URL}get_employees.php`, {
+        credentials: "include"
+      });
       const result = await response.json();
       if (result.success) {
         setEmployees(result.data);
@@ -78,11 +103,26 @@ const AdminEmployees = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
+    // Phone number validation: must start with 09 and be max 11 digits
+    if (name === "phone") {
+      // Only allow digits
+      const digitsOnly = value.replace(/\D/g, '');
+
+      // Limit to 11 digits
+      if (digitsOnly.length > 11) return;
+
+      // Allow typing, but we'll validate on submit
+      setFormData({ ...formData, [name]: digitsOnly });
+      return;
+    }
+
     setFormData({ ...formData, [name]: value });
   };
 
   const handleAddEmployee = () => {
     setEditing(false);
+    setShowPassword(false);
     setFormData({
       name: "",
       email: "",
@@ -95,7 +135,7 @@ const AdminEmployees = () => {
     setShowAddModal(true);
   };
 
-  // handleSubmit (ADD) - No change needed here
+  // handleSubmit (ADD) - WITH PASSWORD VALIDATION
   const handleSubmit = async () => {
     const { name, email, phone, salary, password, authPassword, type } = formData;
 
@@ -105,6 +145,18 @@ const AdminEmployees = () => {
     if (!/\S+@\S+\.\S+/.test(email)) {
       return setModalInfo({ show: true, title: "Invalid Email", message: "Please enter a valid email.", type: "error" });
     }
+
+    // Phone validation: exactly 11 digits starting with 09
+    if (!/^09\d{9}$/.test(phone)) {
+      return setModalInfo({ show: true, title: "Invalid Phone", message: "Phone number must be exactly 11 digits starting with 09.", type: "error" });
+    }
+
+    // VALIDATE PASSWORD HERE
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return setModalInfo({ show: true, title: "Invalid Password", message: passwordError, type: "error" });
+    }
+
     const salaryNum = parseFloat(salary);
     if (isNaN(salaryNum) || salaryNum < 0) {
       return setModalInfo({ show: true, title: "Invalid Salary", message: "Salary must be a positive number.", type: "error" });
@@ -114,6 +166,7 @@ const AdminEmployees = () => {
       const response = await fetch(`${API_URL}manage_employees.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: "include",
         body: JSON.stringify({
           action: 'add',
           name,
@@ -138,7 +191,7 @@ const AdminEmployees = () => {
     }
   };
 
-  // Open Edit Modal - No change needed here
+  // Open Edit Modal
   const handleEditClick = (employee: Employee) => {
     setEditing(true);
     setSelectedEmployee(employee);
@@ -148,13 +201,13 @@ const AdminEmployees = () => {
       phone: employee.phone,
       salary: employee.salary.toString(),
       type: employee.type,
-      password: "", 
+      password: "",
       authPassword: "",
     });
     setShowAddModal(true);
   };
 
-  // handleUpdate (SAVE) - No change needed here
+  // handleUpdate (SAVE) - WITH PASSWORD VALIDATION
   const handleUpdate = async () => {
     const { name, email, phone, salary, password, authPassword, type } = formData;
 
@@ -162,11 +215,25 @@ const AdminEmployees = () => {
       return setModalInfo({ show: true, title: "Error", message: "All fields except 'Set Password' are required.", type: "error" });
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
-       return setModalInfo({ show: true, title: "Invalid Email", message: "Please enter a valid email.", type: "error" });
+      return setModalInfo({ show: true, title: "Invalid Email", message: "Please enter a valid email.", type: "error" });
     }
+
+    // Phone validation: exactly 11 digits starting with 09
+    if (!/^09\d{9}$/.test(phone)) {
+      return setModalInfo({ show: true, title: "Invalid Phone", message: "Phone number must be exactly 11 digits starting with 09.", type: "error" });
+    }
+
+    // VALIDATE PASSWORD ONLY IF USER IS CHANGING IT
+    if (password) {
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        return setModalInfo({ show: true, title: "Invalid Password", message: passwordError, type: "error" });
+      }
+    }
+
     const salaryNum = parseFloat(salary);
     if (isNaN(salaryNum) || salaryNum < 0) {
-       return setModalInfo({ show: true, title: "Invalid Salary", message: "Salary must be a positive number.", type: "error" });
+      return setModalInfo({ show: true, title: "Invalid Salary", message: "Salary must be a positive number.", type: "error" });
     }
     if (!selectedEmployee) return;
 
@@ -174,6 +241,7 @@ const AdminEmployees = () => {
       const response = await fetch(`${API_URL}manage_employees.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: "include",
         body: JSON.stringify({
           action: 'update',
           employeeId: selectedEmployee.id,
@@ -181,7 +249,7 @@ const AdminEmployees = () => {
           email,
           phone,
           salary: salaryNum,
-          password, 
+          password,
           type,
           authPassword
         })
@@ -197,24 +265,33 @@ const AdminEmployees = () => {
         setModalInfo({ show: true, title: "Error", message: result.message, type: "error" });
       }
     } catch (error) {
-       setModalInfo({ show: true, title: "Network Error", message: "Could not connect to server.", type: "error" });
+      setModalInfo({ show: true, title: "Network Error", message: "Could not connect to server.", type: "error" });
     }
   };
 
-  // handleRemove (DELETE) - No change needed here
+  // handleRemove (DELETE)
+  // handleRemove (DELETE)
   const handleRemove = async () => {
     if (!formData.authPassword) {
       return setModalInfo({ show: true, title: "Error", message: "Authentication password is required to delete.", type: "error" });
     }
     if (!selectedEmployee) return;
 
-    const isConfirmed = window.confirm(`Are you sure you want to remove ${selectedEmployee.name}? This action cannot be undone.`);
-    if (!isConfirmed) return;
+    // Show custom confirmation modal instead of browser confirm
+    setShowDeleteConfirm(true);
+  };
+
+  // New function to handle confirmed deletion
+  const handleConfirmDelete = async () => {
+    setShowDeleteConfirm(false); // Close confirmation modal first
+
+    if (!selectedEmployee) return;
 
     try {
       const response = await fetch(`${API_URL}manage_employees.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: "include",
         body: JSON.stringify({
           action: 'delete',
           employeeId: selectedEmployee.id,
@@ -236,7 +313,7 @@ const AdminEmployees = () => {
     }
   };
 
-  // Filter employees - No change needed here
+  // Filter employees
   const filteredEmployees = employees.filter(
     (emp) =>
       emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -266,7 +343,6 @@ const AdminEmployees = () => {
           <table className="employee-table">
             <thead>
               <tr>
-                {/* 2. Table headers are unchanged as requested */}
                 <th>Employee #</th>
                 <th>Name</th>
                 <th>Email</th>
@@ -285,7 +361,6 @@ const AdminEmployees = () => {
                     onClick={() => handleEditClick(emp)}
                     style={{ cursor: "pointer" }}
                   >
-                    {/* 3. Table data is unchanged as requested */}
                     <td>{emp.id}</td>
                     <td>{emp.name}</td>
                     <td>{emp.email}</td>
@@ -312,7 +387,7 @@ const AdminEmployees = () => {
         </div>
       </div>
 
-      {/* Add / Edit Modal (No change needed) */}
+      {/* Add / Edit Modal */}
       {showAddModal && (
         <div className="add-modal-overlay">
           <div className="add-modal">
@@ -320,46 +395,60 @@ const AdminEmployees = () => {
             <div className="form-grid">
               <div>
                 <label>Employee Name:</label>
-                <input name="name" value={formData.name} onChange={handleChange} />
+                <input name="name" value={formData.name} onChange={handleChange} placeholder="Enter name" />
                 <label>Email:</label>
-                <input name="email" value={formData.email} onChange={handleChange} />
+                <input name="email" value={formData.email} onChange={handleChange} placeholder="Enter email" />
                 <label>Phone number:</label>
-                <input name="phone" value={formData.phone} onChange={handleChange} />
-                
+                <input
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="09XXXXXXXXX"
+                  maxLength={11}
+                />
                 <label>Employee Type:</label>
                 <select name="type" value={formData.type} onChange={handleChange}>
-                    <option value="employee">Employee</option>
-                    <option value="admin">Admin</option>
+                  <option value="employee">Employee</option>
+                  <option value="admin">Admin</option>
                 </select>
               </div>
 
               <div>
-                <label>Salary:</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="salary"
-                  value={formData.salary}
-                  onChange={handleChange}
-                  min="0"
-                  autoComplete="off"
-                />
-                
                 <label>{editing ? "Set New Password (optional):" : "Employee Password:"}</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  autoComplete="new-password"
-                  placeholder={editing ? "Leave blank to keep old password" : ""}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={!editing && showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    autoComplete="new-password"
+                    placeholder={editing ? "Leave blank to keep old password" : "Enter password"}
+                    style={{ paddingRight: !editing ? "40px" : undefined }}
+                  />
+                  {/* Show eye icon ONLY in Add mode (not editing) */}
+                  {!editing && (
+                    <i
+                      className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        cursor: "pointer",
+                        color: "#666",
+                      }}
+                    ></i>
+                  )}
+                </div>
+
                 <label>Authentication Password:</label>
                 <input
                   type="password"
                   name="authPassword"
                   value={formData.authPassword}
                   onChange={handleChange}
+                  placeholder="Enter admin password"
                 />
               </div>
             </div>
@@ -368,7 +457,7 @@ const AdminEmployees = () => {
               {editing ? (
                 <>
                   <button onClick={handleUpdate}>Save Changes</button>
-                  <button onClick={handleRemove} className="remove-btn">Remove</button>
+                  <button onClick={handleRemove} className="remove-btn">Delete</button>
                   <button
                     onClick={() => {
                       setShowAddModal(false);
@@ -391,7 +480,9 @@ const AdminEmployees = () => {
         </div>
       )}
 
-      {/* Alert Modal (No change needed) */}
+      <SettingsFooter />
+
+      {/* Alert Modal */}
       <CustomModal
         show={modalInfo.show}
         title={modalInfo.title}
@@ -399,7 +490,20 @@ const AdminEmployees = () => {
         onClose={() => setModalInfo({ ...modalInfo, show: false })}
         type={modalInfo.type}
       />
+
+      {/* Delete Confirmation Modal */}
+      <CustomModal
+        show={showDeleteConfirm}
+        title="Confirm Deletion"
+        message={`Are you sure you want to remove ${selectedEmployee?.name}? This action cannot be undone.`}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleConfirmDelete}
+        type="confirm"
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
+
   );
 };
 

@@ -4,6 +4,7 @@ import EmployeeNavbar from "../components/EmployeeNavbar";
 import "../components/SystemTitle.css";
 import CustomModal from "../components/Modals";
 import SystemTitle from "../components/SystemTitle";
+import SettingsFooter from "../components/SettingsFooter";
 
 // Define service item interface
 interface ServiceItem {
@@ -31,6 +32,49 @@ const ServicePage: React.FC = () => {
     const [address, setAddress] = useState("");
     const [pickupDate, setPickupDate] = useState("");
     const [scheduleType, setScheduleType] = useState("pickup");
+
+    const [settings, setSettings] = useState<{ [key: string]: string }>({});
+    const [loadLimit, setLoadLimit] = useState<number>(30); // daily load limit settings
+    const [weightPerLoad, setWeightPerLoad] = useState<number>(7); // weight per load settings
+
+
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const response = await fetch(
+                    "http://localhost/laundry_tambayan_pos_system_backend/get_settings.php"
+                );
+                const data = await response.json();
+
+                if (data.success && data.settings) {
+                    const settingsObj: { [key: string]: string } = {};
+                    data.settings.forEach((s: any) => {
+                        settingsObj[s.setting_name] = s.setting_value;
+                    });
+
+                    setSettings(settingsObj);
+
+                    // Set load limit (daily capacity)
+                    if (settingsObj.load_limit) {
+                        const limitNum = Number(settingsObj.load_limit);
+                        if (!isNaN(limitNum)) setLoadLimit(limitNum);
+                    }
+
+                    // Set weight per load (kg per load)
+                    if (settingsObj.weight_per_load) {
+                        const weightNum = Number(settingsObj.weight_per_load);
+                        if (!isNaN(weightNum) && weightNum > 0) setWeightPerLoad(weightNum);
+                    }
+                }
+
+            } catch (error) {
+                console.error("Failed to fetch settings:", error);
+            }
+        };
+
+        fetchSettings();
+    }, []);
 
     const [services, setServices] = useState<{ name: string; price: number }[]>([]);
     const [addons, setAddons] = useState<{ name: string; price: number }[]>([]);
@@ -114,36 +158,42 @@ const ServicePage: React.FC = () => {
     useEffect(() => {
         if (loadWeight && !isNaN(Number(loadWeight))) {
             const weight = Number(loadWeight);
-            const calculatedLoads = Math.ceil(weight / 7);
+            // Use weightPerLoad to compute number of loads
+            const perLoad = (weightPerLoad && !isNaN(weightPerLoad) && weightPerLoad > 0) ? weightPerLoad : 7;
+            const calculatedLoads = Math.ceil(weight / perLoad);
             setNumLoads(calculatedLoads.toString());
         } else {
             setNumLoads("");
         }
-    }, [loadWeight]);
+    }, [loadWeight, weightPerLoad]);
+
 
     // Auto-add/remove delivery fee when schedule type changes
     useEffect(() => {
-        const deliveryFee = {
+        if (!scheduleType) return;
+
+        // Safely parse delivery fee
+        const feeValue = parseFloat(settings['delivery_fee'] ?? '50');
+        const validFee = isNaN(feeValue) ? 50 : feeValue;
+
+        const deliveryFee: ServiceItem = {
             name: "Delivery Fee",
-            price: 50,
-            type: 'service' as const,
-            quantity: 1
+            price: validFee,
+            type: 'service',
+            quantity: 1,
         };
 
-        if (scheduleType === "delivery") {
-            // Add delivery fee if not already present
-            setServiceItems(prev => {
-                const hasDeliveryFee = prev.some(item => item.name === "Delivery Fee");
-                if (!hasDeliveryFee) {
-                    return [...prev, deliveryFee];
-                }
-                return prev;
-            });
-        } else {
-            // Remove delivery fee when switching to pickup
-            setServiceItems(prev => prev.filter(item => item.name !== "Delivery Fee"));
-        }
-    }, [scheduleType]);
+        setServiceItems(prev => {
+            const hasDeliveryFee = prev.some(item => item.name === "Delivery Fee");
+
+            if (scheduleType === "delivery") {
+                if (!hasDeliveryFee) return [...prev, deliveryFee];
+                return prev.map(item => item.name === "Delivery Fee" ? deliveryFee : item);
+            } else {
+                return prev.filter(item => item.name !== "Delivery Fee");
+            }
+        });
+    }, [scheduleType, settings]);
 
     // Add service to the list
     const handleAddService = (serviceName: string, type: 'service' | 'addon') => {
@@ -217,13 +267,13 @@ const ServicePage: React.FC = () => {
     useEffect(() => {
         if (numLoads && !isNaN(Number(numLoads))) {
             setServiceItems(prev => prev.map(item =>
-                item.type === 'service'
+                item.type === 'service' && item.name !== "Delivery Fee"
                     ? { ...item, quantity: Number(numLoads) }
                     : item
             ));
         } else {
             setServiceItems(prev => prev.map(item =>
-                item.type === 'service'
+                item.type === 'service' && item.name !== "Delivery Fee"
                     ? { ...item, quantity: 0 }
                     : item
             ));
@@ -336,7 +386,7 @@ const ServicePage: React.FC = () => {
 
         // Check capacity
         if (capacityInfo && Number(numLoads) > capacityInfo.remaining) {
-            let message = `This date only has ${capacityInfo.remaining} loads available (${capacityInfo.scheduled}/30 scheduled). `;
+            let message = `This date only has ${capacityInfo.remaining}/${loadLimit} loads available (${capacityInfo.scheduled} scheduled). `;
             message += "Your order requires " + numLoads + " loads. ";
 
             if (capacityInfo.availableDates.length > 0) {
@@ -354,6 +404,7 @@ const ServicePage: React.FC = () => {
 
             return message;
         }
+
 
         return null;
     };
@@ -481,14 +532,18 @@ const ServicePage: React.FC = () => {
 
         // Clear sessionStorage
         sessionStorage.removeItem(STORAGE_KEY);
-        console.log("Draft cleared from session storage");
     };
 
     // items list getter
     const getPrice = (serviceName: string): number => {
+        if (serviceName === "Delivery Fee") {
+            const feeValue = parseFloat(settings['delivery_fee'] ?? '50');
+            return isNaN(feeValue) ? 50 : feeValue;
+        }
         const item = [...services, ...addons].find(i => i.name === serviceName);
         return item ? item.price : 0;
     };
+
 
     //items getter
     useEffect(() => {
@@ -523,6 +578,7 @@ const ServicePage: React.FC = () => {
             employee_id: 1,
             total_weight: Number(loadWeight),
             total_load: Number(numLoads),
+            weight_per_load_snapshot: weightPerLoad,  // ✅ ADD THIS LINE
             total_amount: total,
             customer_name: customerName,
             contact: contactNo,
@@ -543,6 +599,7 @@ const ServicePage: React.FC = () => {
             const response = await fetch("http://localhost/laundry_tambayan_pos_system_backend/create_order.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(newOrder),
             });
 
@@ -673,6 +730,7 @@ const ServicePage: React.FC = () => {
                                 min="0"
                                 value={loadWeight}
                                 onChange={(e) => setLoadWeight(e.target.value)}
+                                placeholder="0"
                             />
 
                         </div>
@@ -684,7 +742,8 @@ const ServicePage: React.FC = () => {
                                 value={numLoads}
                                 readOnly
                                 disabled
-                                style={{ cursor: 'not-allowed', opacity: 0.7 }}
+                                style={{ opacity: 0.7 }}
+                                placeholder="0"
                             />
                         </div>
 
@@ -765,6 +824,8 @@ const ServicePage: React.FC = () => {
                                 min={getMinDate()}
                                 className="date-picker"
                             />
+
+                            {/* Loading indicator while checking capacity */}
                             {isCheckingCapacity && (
                                 <div className="capacity-indicator capacity-loading">
                                     <small style={{ color: '#aaa' }}>
@@ -772,25 +833,31 @@ const ServicePage: React.FC = () => {
                                     </small>
                                 </div>
                             )}
+
+                            {/* Capacity info display */}
                             {capacityInfo && pickupDate && !isCheckingCapacity && (
                                 <div className="capacity-indicator">
                                     <small
                                         style={{
-                                            color: capacityInfo.remaining > 20
-                                                ? '#4caf50'
-                                                : capacityInfo.remaining > 10
-                                                    ? '#ff9800'
-                                                    : '#f44336',
+                                            color: (() => {
+                                                const greenThreshold = Math.ceil(loadLimit * 0.7);
+                                                const orangeThreshold = Math.ceil(loadLimit * 0.3);
+
+                                                if (capacityInfo.remaining > greenThreshold) return '#4caf50'; // green
+                                                if (capacityInfo.remaining > orangeThreshold) return '#ff9800'; // orange
+                                                return '#f44336'; // red
+                                            })(),
                                             fontWeight: 'bold'
                                         }}
                                     >
                                         {capacityInfo.remaining > 0
-                                            ? `${capacityInfo.remaining}/30 loads available (${capacityInfo.scheduled} scheduled)`
+                                            ? `${capacityInfo.remaining}/${loadLimit} loads available (${capacityInfo.scheduled} scheduled)`
                                             : '⚠️ This date is fully booked'}
                                     </small>
                                 </div>
                             )}
                         </div>
+
 
                         <div className="input-group">
                             <label>Schedule Type:</label>
@@ -811,6 +878,7 @@ const ServicePage: React.FC = () => {
                                 type="text"
                                 value={customerName}
                                 onChange={(e) => setCustomerName(e.target.value)}
+                                placeholder="name"
                             />
                         </div>
 
@@ -879,7 +947,6 @@ const ServicePage: React.FC = () => {
                             onClose={() => {
                                 // If it's a success modal, clear data when closing
                                 if (modalConfig.type === "success") {
-                                    console.log("=== SUCCESS MODAL CLOSED - CLEARING DATA ===");
                                     handleClear();
                                 } else {
                                     setModalConfig({ ...modalConfig, show: false });
@@ -890,6 +957,7 @@ const ServicePage: React.FC = () => {
                     </div>
                 </div>
             </div>
+            <SettingsFooter />
         </div>
     );
 };

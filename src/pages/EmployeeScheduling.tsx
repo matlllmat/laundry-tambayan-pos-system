@@ -3,6 +3,7 @@ import "./EmployeeScheduling.css";
 import EmployeeNavbar from "../components/EmployeeNavbar";
 import SystemTitle from "../components/SystemTitle";
 import CustomModal from "../components/Modals";
+import SettingsFooter from "../components/SettingsFooter";
 
 export type ScheduleStatus = "Pending" | "Completed" | "Unclaimed" | "Late";
 
@@ -21,6 +22,7 @@ export interface Schedule {
     address: string;
     loadWeight: string;
     numLoads: string;
+    weightPerLoadSnapshot: number;
     transactionDate: string;
     scheduleType: "pickup" | "delivery";
     date: string;
@@ -39,17 +41,52 @@ export interface ScheduleStats {
     late: number;
 }
 
+interface StatusToggles {
+    Pending: boolean;
+    Completed: boolean;
+    Unclaimed: boolean;
+    Late: boolean;
+}
+
 interface EditScheduleModalProps {
     schedule: Schedule;
     onClose: () => void;
     onSave: (updatedSchedule: Partial<Schedule>) => Promise<void>;
+    capacityInfo: {
+        remaining: number;
+        scheduled: number;
+        availableDates: Array<{ date: string; remaining: number }>;
+    } | null;
+    isCheckingCapacity: boolean;
+    loadLimit: number;
+    onDateChange: (date: string) => void;
+    onValidateDate: () => string | null;
+    getMinDate: () => string;
+    orderStatus: ScheduleStatus;
 }
 
 const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     schedule,
     onClose,
-    onSave
+    onSave,
+    capacityInfo,
+    isCheckingCapacity,
+    loadLimit,
+    onDateChange,
+    onValidateDate,
+    getMinDate
 }) => {
+
+    useEffect(() => {
+        const modalElement = document.querySelector('.receipt-modal');
+        if (modalElement) {
+            modalElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+    }, []);
+
     const [originalSchedule] = useState({
         customerName: schedule.customerName,
         contact: schedule.contact,
@@ -93,6 +130,8 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                 setEditedSchedule(originalSchedule);
                 setPassword("");
                 setShowConfirmModal(false);
+
+                onDateChange('__CLEAR__');
             },
             confirmText: "Yes, Reset All",
             type: "confirm"
@@ -116,6 +155,9 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
 
     const handleDateChange = (newDate: string) => {
         if (newDate !== schedule.date) {
+            // Trigger capacity check via parent
+            onDateChange(newDate);
+
             setConfirmModalConfig({
                 title: "Confirm Date Change",
                 message: `Are you sure you want to change the schedule date from ${new Date(schedule.date).toLocaleDateString()} to ${new Date(newDate).toLocaleDateString()}?`,
@@ -210,6 +252,24 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                 return;
             }
 
+            // Validate date if it was changed
+            if (editedSchedule.date !== schedule.date) {
+                const dateError = onValidateDate();
+                if (dateError) {
+                    setConfirmModalConfig({
+                        title: "Invalid Schedule Date",
+                        message: dateError,
+                        onConfirm: () => setShowConfirmModal(false),
+                        confirmText: "OK",
+                        type: "error"
+                    });
+                    setShowConfirmModal(true);
+                    setSaving(false);
+                    return;
+                }
+            }
+
+            // Build updates object
             const updates: Partial<Schedule> & { password?: string } = {};
 
             if (editedSchedule.customerName !== schedule.customerName)
@@ -279,10 +339,6 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                                 <div className="receipt-row">
                                     <span className="receipt-label">Order ID:</span>
                                     <span className="receipt-value">{schedule.scheduleId}</span>
-                                </div>
-                                <div className="receipt-row">
-                                    <span className="receipt-label">Order Number:</span>
-                                    <span className="receipt-value">{schedule.orderNumber}</span>
                                 </div>
                                 <div className="receipt-row">
                                     <span className="receipt-label">Transaction Date:</span>
@@ -380,6 +436,7 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                                                 value={editedSchedule.contact}
                                                 onChange={(e) => setEditedSchedule({ ...editedSchedule, contact: e.target.value })}
                                                 className="receipt-input"
+                                                placeholder="09XXXXXXXXX"
                                             />
                                         </div>
                                         <div className="receipt-row-editable">
@@ -389,6 +446,7 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                                                 onChange={(e) => setEditedSchedule({ ...editedSchedule, address: e.target.value })}
                                                 className="receipt-textarea"
                                                 rows={2}
+                                                placeholder="Enter Address"
                                             />
                                         </div>
                                         <div className="receipt-row-editable">
@@ -397,8 +455,39 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                                                 type="date"
                                                 value={editedSchedule.date}
                                                 onChange={(e) => handleDateChange(e.target.value)}
+                                                min={getMinDate()}
                                                 className="receipt-input"
                                             />
+
+                                            {/* Loading indicator while checking capacity */}
+                                            {isCheckingCapacity && (
+                                                <div style={{ marginTop: '8px', fontSize: '0.85rem', color: '#aaa' }}>
+                                                    Checking availability...
+                                                </div>
+                                            )}
+
+                                            {/* Capacity info display */}
+                                            {capacityInfo && editedSchedule.date && !isCheckingCapacity && (
+                                                <div style={{ marginTop: '8px' }}>
+                                                    <small
+                                                        style={{
+                                                            color: (() => {
+                                                                const greenThreshold = Math.ceil(loadLimit * 0.7);
+                                                                const orangeThreshold = Math.ceil(loadLimit * 0.3);
+
+                                                                if (capacityInfo.remaining > greenThreshold) return '#4caf50';
+                                                                if (capacityInfo.remaining > orangeThreshold) return '#ff9800';
+                                                                return '#f44336';
+                                                            })(),
+                                                            fontWeight: 'bold'
+                                                        }}
+                                                    >
+                                                        {capacityInfo.remaining > 0
+                                                            ? `${capacityInfo.remaining}/${loadLimit} loads available (${capacityInfo.scheduled} scheduled)`
+                                                            : '⚠️ This date is fully booked'}
+                                                    </small>
+                                                </div>
+                                            )}
                                         </div>
                                     </>
                                 )}
@@ -416,6 +505,19 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                                 </h3>
                                 {showOrderDetails && (
                                     <div className="receipt-section-content">
+                                        <div style={{
+                                            fontSize: '0.85rem',
+                                            color: '#6c757d',
+                                            fontStyle: 'italic',
+                                            marginBottom: '15px',
+                                            padding: '10px',
+                                            backgroundColor: '#f8f9fa',
+                                            borderLeft: '4px solid #4a90e2',
+                                            borderRadius: '4px'
+                                        }}>
+                                            ℹ️ Prices reflect the rates at the time of order creation ({new Date(schedule.transactionDate).toLocaleDateString()})
+                                        </div>
+
                                         <div className="receipt-row">
                                             <span className="receipt-label">Load Weight:</span>
                                             <span className="receipt-value">{schedule.loadWeight} KG</span>
@@ -424,7 +526,10 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                                             <span className="receipt-label">Number of Loads:</span>
                                             <span className="receipt-value">{schedule.numLoads}</span>
                                         </div>
-
+                                        <div className="receipt-row">
+                                            <span className="receipt-label">Weight per Load (at time of order):</span>
+                                            <span className="receipt-value">{schedule.weightPerLoadSnapshot} KG</span>
+                                        </div>
                                         {schedule.serviceItems.length > 0 && (
                                             <>
                                                 <div className="receipt-row" style={{ borderTop: '2px solid #e9ecef', marginTop: '15px', paddingTop: '15px' }}>
@@ -547,6 +652,17 @@ const ScheduleListModal: React.FC<ScheduleListModalProps> = ({
     onClose,
     onSelectSchedule
 }) => {
+
+    useEffect(() => {
+        const modalElement = document.querySelector('.schedule-list-modal');
+        if (modalElement) {
+            modalElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+    }, []);
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         const options: Intl.DateTimeFormatOptions = {
@@ -625,9 +741,39 @@ const EmployeeScheduling: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Settings state for validation
+    const [loadLimit, setLoadLimit] = useState<number>(30);
+
+    // Capacity tracking for date validation in edit modal
+    const [capacityInfo, setCapacityInfo] = useState<{
+        remaining: number;
+        scheduled: number;
+        availableDates: Array<{ date: string; remaining: number }>;
+    } | null>(null);
+    const [isCheckingCapacity, setIsCheckingCapacity] = useState(false);
+
+
+    const [statusToggles, setStatusToggles] = useState<StatusToggles>(() => {
+        const saved = localStorage.getItem('scheduleStatusToggles');
+        if (saved) {
+            return JSON.parse(saved);
+        }
+        return {
+            Pending: true,
+            Completed: false,
+            Unclaimed: true,
+            Late: true
+        };
+    });
+
     useEffect(() => {
         fetchSchedules();
+        fetchSettings();
     }, []);
+
+    useEffect(() => {
+        localStorage.setItem('scheduleStatusToggles', JSON.stringify(statusToggles));
+    }, [statusToggles]);
 
     const fetchSchedules = async () => {
         try {
@@ -658,6 +804,157 @@ const EmployeeScheduling: React.FC = () => {
         }
     };
 
+    const fetchSettings = async () => {
+        try {
+            const response = await fetch(
+                "http://localhost/laundry_tambayan_pos_system_backend/get_settings.php"
+            );
+            const data = await response.json();
+
+            if (data.success && data.settings) {
+                const settingsObj: { [key: string]: string } = {};
+                data.settings.forEach((s: any) => {
+                    settingsObj[s.setting_name] = s.setting_value;
+                });
+
+                // Only set load limit since that's all we use in this component
+                if (settingsObj.load_limit) {
+                    const limitNum = Number(settingsObj.load_limit);
+                    if (!isNaN(limitNum)) setLoadLimit(limitNum);
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch settings:", error);
+        }
+    };
+
+    // Check daily capacity when date is selected in edit modal
+    const checkDailyCapacityForEdit = async (date: string, currentOrderLoads: number) => {
+        if (!date) return;
+
+        setIsCheckingCapacity(true);
+        try {
+            const response = await fetch(
+                `http://localhost/laundry_tambayan_pos_system_backend/check_daily_capacity.php?date=${date}`
+            );
+
+            if (!response.ok) {
+                console.error("HTTP error:", response.status);
+                setCapacityInfo(null);
+                return;
+            }
+
+            const text = await response.text();
+
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (parseError) {
+                console.error("Failed to parse JSON. Server response:", text);
+                setCapacityInfo(null);
+                return;
+            }
+
+            if (result.success) {
+                // Add back the current order's loads to get true remaining capacity
+                // Only adjust if this order is actually scheduled on this date
+                const isOrderOnThisDate = result.scheduled_loads >= currentOrderLoads;
+
+                const adjustedRemaining = isOrderOnThisDate
+                    ? result.remaining_capacity + currentOrderLoads
+                    : result.remaining_capacity;
+
+                const adjustedScheduled = isOrderOnThisDate
+                    ? result.scheduled_loads - currentOrderLoads
+                    : result.scheduled_loads;
+
+                setCapacityInfo({
+                    remaining: adjustedRemaining,
+                    scheduled: adjustedScheduled,
+                    availableDates: result.available_dates
+                });
+            } else {
+                console.error("API error:", result.message);
+                setCapacityInfo(null);
+            }
+        } catch (error) {
+            console.error("Error checking capacity:", error);
+            setCapacityInfo(null);
+        } finally {
+            setIsCheckingCapacity(false);
+        }
+    };
+
+    // Get minimum date - today only for late/unclaimed, tomorrow for pending
+    const getMinDateForOrder = (orderStatus: ScheduleStatus): string => {
+        const today = new Date();
+
+        // Allow today only for Late or Unclaimed orders
+        if (orderStatus === "Late" || orderStatus === "Unclaimed") {
+            return today.toISOString().split('T')[0];
+        }
+
+        // For Pending orders, require tomorrow at minimum
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        return tomorrow.toISOString().split('T')[0];
+    };
+
+    // Check if date is Sunday
+    const isSunday = (dateString: string): boolean => {
+        const date = new Date(dateString + 'T00:00:00');
+        return date.getDay() === 0;
+    };
+
+    // Validate date selection for rescheduling
+    const validateDateSelection = (newDate: string, orderLoads: number, orderStatus: ScheduleStatus): string | null => {
+        if (!newDate) return "Please select a schedule date.";
+
+        const selectedDate = new Date(newDate + 'T00:00:00');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Check if past date
+        if (selectedDate < today) {
+            return "Cannot schedule for past dates.";
+        }
+
+        // Check if trying to schedule for today without proper status
+        if (selectedDate.getTime() === today.getTime()) {
+            if (orderStatus !== "Late" && orderStatus !== "Unclaimed") {
+                return "Rescheduling to today is only allowed for Late or Unclaimed orders.";
+            }
+        }
+
+        // Check if Sunday
+        if (isSunday(newDate)) {
+            return "Sundays are not available. Please select another date.";
+        }
+
+        // Check capacity
+        if (capacityInfo && orderLoads > capacityInfo.remaining) {
+            let message = `This date only has ${capacityInfo.remaining}/${loadLimit} loads available (${capacityInfo.scheduled} scheduled). `;
+            message += `This order requires ${orderLoads} loads. `;
+
+            if (capacityInfo.availableDates.length > 0) {
+                message += "\n\nAvailable dates:\n";
+                capacityInfo.availableDates.forEach(d => {
+                    const dateObj = new Date(d.date + 'T00:00:00');
+                    const formatted = dateObj.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
+                    message += `• ${formatted} (${d.remaining} loads available)\n`;
+                });
+            }
+
+            return message;
+        }
+
+        return null;
+    };
+
     const handleSaveSchedule = async (updatedSchedule: Partial<Schedule>) => {
         try {
             const response = await fetch('http://localhost/laundry_tambayan_pos_system_backend/update_schedule.php', {
@@ -686,6 +983,12 @@ const EmployeeScheduling: React.FC = () => {
         }
     };
 
+    const handleToggleStatus = (status: ScheduleStatus) => {
+        setStatusToggles(prev => ({
+            ...prev,
+            [status]: !prev[status]
+        }));
+    };
     const calculateStats = useMemo((): ScheduleStats => {
         const now = new Date();
         let filteredSchedules = schedules;
@@ -718,20 +1021,25 @@ const EmployeeScheduling: React.FC = () => {
                 break;
         }
 
+        // Don't filter by toggles - always show real numbers
         return {
             pending: filteredSchedules.filter(s => s.status === "Pending").length,
             completed: filteredSchedules.filter(s => s.status === "Completed").length,
             unclaimed: filteredSchedules.filter(s => s.status === "Unclaimed").length,
-            late: filteredSchedules.filter(s => s.status === "Late").length
+            late: filteredSchedules.filter(s => s.status === "Late").length,
         };
     }, [schedules, statsTimeRange]);
 
     const getSchedulesForDate = (date: string): Schedule[] => {
-        return schedules.filter(schedule => schedule.date === date);
+        return schedules.filter(schedule =>
+            schedule.date === date && statusToggles[schedule.status]
+        );
     };
 
     const getScheduleCount = (date: string): number => {
-        return schedules.filter(schedule => schedule.date === date).length;
+        return schedules.filter(schedule =>
+            schedule.date === date && statusToggles[schedule.status]
+        ).length;
     };
 
     const getDatePriorityColor = (date: string): string => {
@@ -826,6 +1134,7 @@ const EmployeeScheduling: React.FC = () => {
     const handleCloseEditModal = () => {
         setEditModalOpen(false);
         setSelectedSchedule(null);
+        setCapacityInfo(null);
         // fetchSchedules();
     };
 
@@ -868,22 +1177,61 @@ const EmployeeScheduling: React.FC = () => {
                                     <option value="all">All Time</option>
                                 </select>
                             </div>
-
                             <div className="stats-cards">
-                                <div className="stat-card stat-pending">
-                                    <div className="stat-number">{calculateStats.pending}</div>
+                                <div className={`stat-card stat-pending ${!statusToggles.Pending ? 'disabled' : ''}`}>
+                                    <div className="stat-card-header">
+                                        <div className="stat-number">{calculateStats.pending}</div>
+                                        <label className="toggle-switch">
+                                            <input
+                                                type="checkbox"
+                                                checked={statusToggles.Pending}
+                                                onChange={() => handleToggleStatus("Pending")}
+                                            />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
                                     <div className="stat-label">Pending</div>
                                 </div>
-                                <div className="stat-card stat-completed">
-                                    <div className="stat-number">{calculateStats.completed}</div>
+                                <div className={`stat-card stat-completed ${!statusToggles.Completed ? 'disabled' : ''}`}>
+                                    <div className="stat-card-header">
+                                        <div className="stat-number">{calculateStats.completed}</div>
+                                        <label className="toggle-switch">
+                                            <input
+                                                type="checkbox"
+                                                checked={statusToggles.Completed}
+                                                onChange={() => handleToggleStatus("Completed")}
+                                            />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
                                     <div className="stat-label">Completed</div>
                                 </div>
-                                <div className="stat-card stat-unclaimed">
-                                    <div className="stat-number">{calculateStats.unclaimed}</div>
+                                <div className={`stat-card stat-unclaimed ${!statusToggles.Unclaimed ? 'disabled' : ''}`}>
+                                    <div className="stat-card-header">
+                                        <div className="stat-number">{calculateStats.unclaimed}</div>
+                                        <label className="toggle-switch">
+                                            <input
+                                                type="checkbox"
+                                                checked={statusToggles.Unclaimed}
+                                                onChange={() => handleToggleStatus("Unclaimed")}
+                                            />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
                                     <div className="stat-label">Unclaimed</div>
                                 </div>
-                                <div className="stat-card stat-late">
-                                    <div className="stat-number">{calculateStats.late}</div>
+                                <div className={`stat-card stat-late ${!statusToggles.Late ? 'disabled' : ''}`}>
+                                    <div className="stat-card-header">
+                                        <div className="stat-number">{calculateStats.late}</div>
+                                        <label className="toggle-switch">
+                                            <input
+                                                type="checkbox"
+                                                checked={statusToggles.Late}
+                                                onChange={() => handleToggleStatus("Late")}
+                                            />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
                                     <div className="stat-label">Late</div>
                                 </div>
                             </div>
@@ -905,6 +1253,12 @@ const EmployeeScheduling: React.FC = () => {
                                 <div className="legend-item">
                                     <span className="legend-color priority-completed"></span>
                                     <span>Completed</span>
+                                </div>
+                                <div className="legend-item">
+                                    <span className="legend-today-box">
+                                        <span className="legend-today-dot">●</span>
+                                    </span>
+                                    <span>Today</span>
                                 </div>
                             </div>
                         </div>
@@ -956,6 +1310,7 @@ const EmployeeScheduling: React.FC = () => {
                                 })}
                             </div>
                         </div>
+
                     </div>
                 )}
             </div>
@@ -974,8 +1329,32 @@ const EmployeeScheduling: React.FC = () => {
                     schedule={selectedSchedule}
                     onSave={handleSaveSchedule}
                     onClose={handleCloseEditModal}
+                    capacityInfo={capacityInfo}
+                    isCheckingCapacity={isCheckingCapacity}
+                    loadLimit={loadLimit}
+                    onDateChange={(newDate) => {
+                        // Check if this is a clear signal from reset button
+                        if (newDate === '__CLEAR__') {
+                            setCapacityInfo(null);
+                            return;
+                        }
+
+                        // Check capacity when date changes, accounting for current order's loads
+                        const orderLoads = Number(selectedSchedule.numLoads) || 0;
+                        checkDailyCapacityForEdit(newDate, orderLoads);
+                    }}
+                    onValidateDate={() => {
+                        if (!selectedSchedule) return null;
+                        const orderLoads = Number(selectedSchedule.numLoads) || 0;
+                        // Get the current date from editedSchedule in modal
+                        const currentEditedDate = document.querySelector<HTMLInputElement>('.receipt-input[type="date"]')?.value;
+                        return validateDateSelection(currentEditedDate || selectedSchedule.date, orderLoads, selectedSchedule.status);
+                    }}
+                    getMinDate={() => getMinDateForOrder(selectedSchedule.status)}
+                    orderStatus={selectedSchedule.status}
                 />
             )}
+            < SettingsFooter />
         </div>
     );
 };

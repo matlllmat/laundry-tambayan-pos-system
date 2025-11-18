@@ -1,3 +1,12 @@
+/* ============================================================
+   ADMIN REPORT PAGE - SCOPED STYLES
+   All selectors are prefixed with .admin-report-page to prevent 
+   conflicts with other pages
+   ============================================================ */
+
+/* ============================================================
+   1. PAGE LAYOUT
+   ============================================================ */
 .admin-report-page {
   display: flex;
   flex-direction: column;
@@ -6,7 +15,7 @@
   animation-delay: 0.2s;
 }
 
-.admin-report-container {
+.admin-report-page .admin-report-container {
   flex: 1;
   display: flex;
   justify-content: center;
@@ -17,7 +26,10 @@
   animation-delay: 0.2s;
 }
 
-.report-wrapper {
+/* ============================================================
+   2. REPORT WRAPPER
+   ============================================================ */
+.admin-report-page .report-wrapper {
   width: 90%;
   max-width: 1200px;
   background: rgba(50, 70, 100, 0.85);
@@ -28,19 +40,21 @@
   padding: 2rem;
 }
 
-.report-header {
+.admin-report-page .report-header {
   margin-bottom: 1.5rem;
 }
 
-.report-header h1 {
+.admin-report-page .report-header h1 {
   font-size: 2rem;
   font-weight: 600;
   margin: 0;
   color: white;
 }
 
-/* Date Range Controls */
-.report-controls {
+/* ============================================================
+   3. DATE RANGE CONTROLS
+   ============================================================ */
+.admin-report-page .report-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -48,7 +62,7 @@
   gap: 1rem;
 }
 
-.date-range-section {
+.admin-report-page .date-range-section {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -58,72 +72,100 @@
   flex: 1;
 }
 
-.calendar-icon {
+.admin-report-page .calendar-icon {
   color: white;
   display: flex;
   align-items: center;
 }
 
-.date-label {
+.admin-report-page .date-label {
   color: white;
   font-size: 0.95rem;
   font-weight: 500;
   white-space: nowrap;
 }
 
-.date-inputs {
+.admin-report-page .date-inputs {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   flex: 1;
 }
 
-.date-input {
+/* Date Input Styling */
+.admin-report-page .date-input {
   flex: 1;
   padding: 0.5rem 0.875rem;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 6px;
   font-size: 0.875rem;
-  color: white !important;
+  color: #fff !important;
   cursor: pointer;
   min-width: 150px;
 }
 
-.date-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+.admin-report-page .date-input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
 }
 
-.date-input::-webkit-calendar-picker-indicator {
+.admin-report-page .date-input::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  filter: invert(1);
+  filter: invert(0);
+  opacity: 1;
 }
 
-.date-input:focus {
+.admin-report-page .date-input:focus {
   outline: none;
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-.date-separator {
+.admin-report-page .date-input::-webkit-datetime-edit {
+  color: #fff !important;
+}
+
+.admin-report-page .date-input::-webkit-datetime-edit-fields-wrapper {
+  color: #fff !important;
+}
+
+.admin-report-page .date-input::-moz-placeholder {
+  color: #fff !important;
+}
+
+.admin-report-page .date-separator {
   color: white;
   font-size: 0.9rem;
 }
 
-.sum-display {
+/* Sum Button */
+.admin-report-page .sum-button {
   background: rgba(40, 60, 90, 0.9);
   padding: 0.75rem 2rem;
   border-radius: 8px;
-}
-
-.sum-label {
   color: white;
   font-size: 0.95rem;
   font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-/* Table Container */
-.report-table-container {
+.admin-report-page .sum-button:hover:not(:disabled) {
+  background: rgba(50, 80, 120, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.admin-report-page .sum-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   4. REPORT TABLE
+   ============================================================ */
+.admin-report-page .report-table-container {
   background: rgba(220, 225, 230, 0.95);
   border-radius: 12px;
   padding: 1.5rem;
@@ -131,23 +173,23 @@
   max-height: 500px;
 }
 
-/* Table Styles */
-.report-table {
+.admin-report-page .report-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
   border-radius: 8px;
   overflow: hidden;
+  min-height: 100px;
 }
 
-.report-table thead {
+.admin-report-page .report-table thead {
   background: white;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-.report-table thead th {
+.admin-report-page .report-table thead th {
   padding: 0.875rem 1.5rem;
   text-align: center;
   font-size: 0.95rem;
@@ -157,27 +199,32 @@
   background: white;
 }
 
-.report-table tbody tr {
+.admin-report-page .report-table tbody tr {
   background: white;
   border-bottom: 1px solid #d1d5db;
-  transition: background-color 0.2s;
-}
-
-.report-table tbody tr:hover:not(.empty-row) {
-  background: #f3f4f6;
+  transition: all 0.2s ease;
   cursor: pointer;
 }
 
-.report-table tbody tr.empty-row {
-  background: white;
+.admin-report-page .report-table tbody tr:hover {
+  background: #e0f2fe;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.report-table tbody tr.empty-row:hover {
+.admin-report-page .report-table tbody tr.empty-row {
   background: white;
   cursor: default;
 }
 
-.report-table tbody td {
+.admin-report-page .report-table tbody tr.empty-row:hover {
+  background: white;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+.admin-report-page .report-table tbody td {
   padding: 0.875rem 1.5rem;
   font-size: 0.9rem;
   color: #1f2937;
@@ -185,48 +232,415 @@
   text-align: center;
 }
 
-/* Responsive Design */
+/* ============================================================
+   5. MODALS
+   ============================================================ */
+.admin-report-page .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.admin-report-page .modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.admin-report-page .modal-large {
+  max-width: 1000px;
+}
+
+.admin-report-page .modal-small {
+  max-width: 450px;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Modal Header */
+.admin-report-page .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-report-page .modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1f2937;
+}
+
+.admin-report-page .modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #6b7280;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.admin-report-page .modal-close:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Modal Body */
+.admin-report-page .modal-body {
+  padding: 1.5rem;
+}
+
+/* ============================================================
+   6. CALCULATION PREVIEW (Save Modal)
+   ============================================================ */
+.admin-report-page .calculation-preview {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-report-page .calculation-preview h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #1f2937;
+}
+
+.admin-report-page .preview-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-report-page .preview-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-report-page .preview-item:last-child {
+  border-bottom: none;
+}
+
+.admin-report-page .preview-label {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.admin-report-page .preview-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.admin-report-page .preview-value.net-income {
+  color: #10b981;
+  font-size: 1.1rem;
+}
+
+/* ============================================================
+   7. FORM ELEMENTS (Modals)
+   ============================================================ */
+.admin-report-page .form-group {
+  margin-bottom: 1.25rem;
+}
+
+.admin-report-page .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.admin-report-page .modal-input,
+.admin-report-page .modal-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.admin-report-page .modal-input:focus,
+.admin-report-page .modal-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.admin-report-page .modal-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+/* Error Message */
+.admin-report-page .error-message {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+/* ============================================================
+   8. MODAL BUTTONS
+   ============================================================ */
+.admin-report-page .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.admin-report-page .btn-cancel,
+.admin-report-page .btn-save,
+.admin-report-page .btn-delete {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.admin-report-page .btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.admin-report-page .btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.admin-report-page .btn-save {
+  background: #3b82f6;
+  color: white;
+}
+
+.admin-report-page .btn-save:hover {
+  background: #2563eb;
+}
+
+.admin-report-page .btn-delete {
+  background: #ef4444;
+  color: white;
+}
+
+.admin-report-page .btn-delete:hover {
+  background: #dc2626;
+}
+
+/* ============================================================
+   9. DETAIL VIEW MODAL
+   ============================================================ */
+.admin-report-page .detail-summary {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.admin-report-page .detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-report-page .detail-row:last-child {
+  border-bottom: none;
+}
+
+.admin-report-page .detail-label {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.admin-report-page .detail-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.admin-report-page .detail-value.net-income {
+  color: #10b981;
+  font-size: 1.1rem;
+}
+
+/* ============================================================
+   10. EXPENSE DETAIL TABLE
+   ============================================================ */
+.admin-report-page .expense-table-container {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.admin-report-page .expense-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.admin-report-page .expense-detail-table thead {
+  background: #f3f4f6;
+}
+
+.admin-report-page .expense-detail-table th {
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.admin-report-page .expense-detail-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #1f2937;
+}
+
+.admin-report-page .expense-detail-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.admin-report-page .expense-detail-table tfoot {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+/* ============================================================
+   11. DELETE CONFIRMATION
+   ============================================================ */
+.admin-report-page .delete-info {
+  background: #fee2e2;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 4px solid #ef4444;
+}
+
+/* ============================================================
+   12. RESPONSIVE DESIGN
+   ============================================================ */
 @media (max-width: 992px) {
-  .report-controls {
+  .admin-report-page .report-controls {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .date-range-section {
+  .admin-report-page .date-range-section {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .date-inputs {
+  .admin-report-page .date-inputs {
     flex-direction: column;
   }
 
-  .date-input {
+  .admin-report-page .date-input {
     width: 100%;
-  }
-
-  .sum-display {
-    text-align: center;
   }
 }
 
 @media (max-width: 768px) {
-  .admin-report-container {
+  .admin-report-page .admin-report-container {
     padding: 1rem;
   }
 
-  .report-wrapper {
+  .admin-report-page .report-wrapper {
     width: 95%;
     padding: 1.5rem;
   }
 
-  .report-header h1 {
+  .admin-report-page .report-header h1 {
     font-size: 1.5rem;
   }
 
-  .report-table thead th,
-  .report-table tbody td {
+  .admin-report-page .report-table thead th,
+  .admin-report-page .report-table tbody td {
     padding: 0.625rem 0.75rem;
     font-size: 0.85rem;
   }
+
+  .admin-report-page .modal-content {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .admin-report-page .modal-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .admin-report-page .preview-item,
+  .admin-report-page .detail-row {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .admin-report-page .expense-detail-table {
+    font-size: 0.8rem;
+  }
+
+  .admin-report-page .expense-detail-table th,
+  .admin-report-page .expense-detail-table td {
+    padding: 0.5rem;
+  }
+}
+
+/* ============================================================
+   TEXT INPUT FIELDS - WHITE BACKGROUND, BLACK TEXT
+   ============================================================ */
+.admin-report-page .modal-input,
+.admin-report-page .modal-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  background: white !important; /* ← Added */
+  color: #000 !important; /* ← Added */
 }
